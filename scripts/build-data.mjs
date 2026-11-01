@@ -75,6 +75,7 @@ function parseCedictFile(file, { gzip = false } = {}) {
     ? zlib.gunzipSync(fs.readFileSync(file)).toString('utf8')
     : fs.readFileSync(file, 'utf8')
   const bySimpPinyin = new Map()
+  const bySimpPinyinNum = new Map()
   const bySimp = new Map()
   let count = 0
   for (const rawLine of raw.split('\n')) {
@@ -88,20 +89,31 @@ function parseCedictFile(file, { gzip = false } = {}) {
     if (!defs.length) continue
     const key = `${simp}|${flat}`
     if (!bySimpPinyin.has(key)) bySimpPinyin.set(key, defs)
+    const numKey = `${simp}|${py.replace(/\s+/g, '')}`
+    if (!bySimpPinyinNum.has(numKey)) bySimpPinyinNum.set(numKey, defs)
     if (!bySimp.has(simp)) bySimp.set(simp, { trad, pinyin: py, defs })
     count++
   }
-  return { bySimpPinyin, bySimp, count }
+  return { bySimpPinyin, bySimpPinyinNum, bySimp, count }
 }
 
 function parseReference(ref) {
   if (!ref) return null
   const m = ref.match(/^(.+?)\|(.+?)\[([^\]]+)\]$/)
   if (!m) return null
-  return { trad: m[1], simp: m[2], flat: toFlat(m[3]) }
+  return {
+    trad: m[1],
+    simp: m[2],
+    flat: toFlat(m[3]),
+    num: m[3].replace(/\s+/g, ''),
+  }
 }
 
 function lookup(dict, simp, flat, ref) {
+  if (ref?.num) {
+    const exactNum = dict.bySimpPinyinNum.get(`${ref.simp}|${ref.num}`)
+    if (exactNum) return exactNum
+  }
   const exact = dict.bySimpPinyin.get(`${simp}|${flat}`)
   if (exact) return exact
   if (ref) {
@@ -130,6 +142,24 @@ const charRows = parse(fs.readFileSync(path.join(SRC, 'hsk30-chars.csv'), 'utf8'
 
 const levelOf = (value) => (String(value).trim() === '7-9' ? 7 : Number(value) || 7)
 const charLevelMap = new Map(charRows.map((row) => [row.Hanzi, levelOf(row.Level)]))
+
+// Prefer the HSK word-list reading for single characters. It reflects the
+// reading learners meet first (了 le, 地 de, 得 de, 行 xíng, ...), while
+// pinyin-pro alone can pick a less common standalone reading.
+const singleCharWords = new Map()
+for (const row of wordRows) {
+  const simp = row.Simplified.trim()
+  if (simp.length !== 1) continue
+  const level = levelOf(row.Level)
+  const existing = singleCharWords.get(simp)
+  if (!existing || level < existing.level) {
+    singleCharWords.set(simp, {
+      pinyin: row.Pinyin.trim(),
+      level,
+      ref: parseReference(row.CEDICT),
+    })
+  }
+}
 
 const freqLines = fs.readFileSync(path.join(SRC, 'zh_cn_50k.txt'), 'utf8').split('\n')
 const freqMap = new Map()
@@ -185,18 +215,20 @@ const seen = new Set()
 for (const row of charRows) {
   const ch = row.Hanzi
   if (!isHan(ch)) continue
-  const flat = toFlat(pinyin(ch, { toneType: 'none' }))
+  const wordForm = singleCharWords.get(ch)
+  const display = wordForm?.pinyin || displayPinyin(ch)
+  const flat = toFlat(wordForm?.pinyin ?? pinyin(ch, { toneType: 'none' }))
   const id = `c:${ch}`
   if (seen.has(id)) continue
   seen.add(id)
-  const enDefs = lookup(en, ch, flat, null)
-  const viDefs = lookup(vi, ch, flat, null)
+  const enDefs = lookup(en, ch, flat, wordForm?.ref ?? null)
+  const viDefs = lookup(vi, ch, flat, wordForm?.ref ?? null)
   entries.push({
     id,
     type: 'char',
     simp: ch,
     trad: row.Traditional || ch,
-    pinyin: displayPinyin(ch),
+    pinyin: display,
     pinyinFlat: flat,
     initials: toInitials(ch),
     en: cleanDefs(enDefs),
@@ -213,7 +245,8 @@ for (const row of wordRows) {
   const simp = row.Simplified.trim()
   if (!simp) continue
   const py = row.Pinyin.trim()
-  const key = `${simp}|${toFlat(py)}`
+  // Keep tone distinctions: 得 dé and 得 de are different words.
+  const key = `${simp}|${py.replace(/\s+/g, '')}`
   const group = wordGroups.get(key)
   if (group) {
     group.level = Math.min(group.level, levelOf(row.Level))
@@ -232,15 +265,15 @@ for (const row of wordRows) {
   }
 }
 
-const charEntryKeys = new Set(entries.map((entry) => `${entry.simp}|${entry.pinyinFlat}`))
+const charEntryKeys = new Set(entries.map((entry) => `${entry.simp}|${entry.pinyin}`))
 
 for (const group of wordGroups.values()) {
   const { simp, pinyin: py } = group
   const flat = toFlat(py)
   // A one-character word that duplicates the character entry adds no value.
   // Alternate readings (e.g. 行 háng) are kept.
-  if (simp.length === 1 && charEntryKeys.has(`${simp}|${flat}`)) continue
-  const id = `w:${simp}:${flat}`
+  if (simp.length === 1 && charEntryKeys.has(`${simp}|${py}`)) continue
+  const id = `w:${simp}:${py.replace(/\s+/g, '')}`
   if (seen.has(id)) continue
   seen.add(id)
   const enDefs = lookup(en, simp, flat, group.ref)
