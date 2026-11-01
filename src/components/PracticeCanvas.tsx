@@ -3,6 +3,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
 import { useMediaQuery, useElementSize } from '../lib/hooks'
@@ -29,7 +30,7 @@ function Outline({
   isDark,
   acceptedCount,
   blend,
-  successFlash,
+  flashIntensity,
 }: {
   data: StrokeData
   transform: CharacterTransform
@@ -38,33 +39,37 @@ function Outline({
   isDark: boolean
   acceptedCount: number
   blend: boolean
-  successFlash: boolean
+  flashIntensity: number
 }) {
   if (size <= 0) return null
   const baseOpacity = isDark ? 0.16 : 0.09
   const acceptedOpacity = isDark ? 0.72 : 0.58
+  const svgTransform = characterTransformToSvg(transform, size, padding)
 
   return (
-    <g transform={characterTransformToSvg(transform, size, padding)}>
-      {data.strokes.map((path, index) => {
-        const accepted = index < acceptedCount
-        const flashGreen = successFlash && accepted
-        return (
+    <>
+      <g transform={svgTransform}>
+        {data.strokes.map((path, index) => (
           <path
             key={index}
             d={path}
-            fill={flashGreen ? 'var(--success)' : 'var(--text)'}
-            opacity={
-              flashGreen
-                ? acceptedOpacity
-                : blend && accepted
-                  ? acceptedOpacity
-                  : baseOpacity
-            }
+            fill="var(--text)"
+            opacity={blend && index < acceptedCount ? acceptedOpacity : baseOpacity}
           />
-        )
-      })}
-    </g>
+        ))}
+      </g>
+      {flashIntensity > 0 ? (
+        <g transform={svgTransform} fill="var(--success)">
+          {data.strokes.slice(0, acceptedCount).map((path, index) => (
+            <path
+              key={index}
+              d={path}
+              opacity={flashIntensity * acceptedOpacity}
+            />
+          ))}
+        </g>
+      ) : null}
+    </>
   )
 }
 
@@ -208,7 +213,7 @@ export function PracticeCanvas({
   acceptedStrokes,
   hintVisible,
   hintIndex,
-  successFlash,
+  successFlashKey,
   onStroke,
   onDrawStart,
   disabled = false,
@@ -222,12 +227,13 @@ export function PracticeCanvas({
   acceptedStrokes: Point[][]
   hintVisible: boolean
   hintIndex: number
-  successFlash: boolean
+  successFlashKey: number
   onStroke: (stroke: Point[]) => boolean
   onDrawStart?: () => void
   disabled?: boolean
 }) {
   const [containerRef, size] = useElementSize<HTMLDivElement>()
+  const [flashIntensity, setFlashIntensity] = useState(0)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawingRef = useRef(false)
   const currentStrokeRef = useRef<Point[]>([])
@@ -242,6 +248,28 @@ export function PracticeCanvas({
     () => mediansToDisplay(data, transform),
     [data, transform],
   )
+
+  useEffect(() => {
+    if (!successFlashKey) return
+    let frame = 0
+    let start: number | null = null
+    const duration = 900
+
+    const tick = (now: number) => {
+      if (start === null) start = now
+      const t = Math.min(1, (now - start) / duration)
+      let intensity: number
+      if (t < 0.2) intensity = t / 0.2
+      else if (t < 0.5) intensity = 1
+      else intensity = 1 - (t - 0.5) / 0.5
+      setFlashIntensity(Math.max(0, Math.min(1, intensity)))
+      if (t < 1) frame = requestAnimationFrame(tick)
+      else setFlashIntensity(0)
+    }
+
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [successFlashKey])
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current
@@ -261,14 +289,18 @@ export function PracticeCanvas({
     const danger = rootStyles.getPropertyValue('--danger').trim() || '#c25b5b'
     const success = rootStyles.getPropertyValue('--success').trim() || '#4f7a4a'
     const width = Math.max(4, size * 0.018)
-    const acceptedColor = successFlash ? success : ink
 
-    const drawStroke = (stroke: Point[], color: string, alpha = 1) => {
+    const drawStroke = (
+      stroke: Point[],
+      color: string,
+      alpha = 1,
+      lineWidth = width,
+    ) => {
       if (stroke.length < 2) return
       ctx.save()
       ctx.globalAlpha = alpha
       ctx.strokeStyle = color
-      ctx.lineWidth = width
+      ctx.lineWidth = lineWidth
       ctx.lineCap = 'round'
       ctx.lineJoin = 'round'
       ctx.beginPath()
@@ -282,7 +314,12 @@ export function PracticeCanvas({
     }
 
     if (!blendOutline) {
-      for (const stroke of acceptedStrokes) drawStroke(stroke, acceptedColor, 0.96)
+      for (const stroke of acceptedStrokes) drawStroke(stroke, ink, 0.96)
+      if (flashIntensity > 0) {
+        for (const stroke of acceptedStrokes) {
+          drawStroke(stroke, success, flashIntensity, width + 1.5)
+        }
+      }
     }
     if (currentStrokeRef.current.length > 1) {
       drawStroke(currentStrokeRef.current, ink, 0.7)
@@ -290,7 +327,7 @@ export function PracticeCanvas({
     if (wrongStrokeRef.current) {
       drawStroke(wrongStrokeRef.current, danger, 0.95)
     }
-  }, [acceptedStrokes, blendOutline, padding, size, successFlash])
+  }, [acceptedStrokes, blendOutline, flashIntensity, padding, size])
 
   useEffect(() => {
     draw()
@@ -305,7 +342,7 @@ export function PracticeCanvas({
     showNumbers,
     hintVisible,
     hintIndex,
-    successFlash,
+    flashIntensity,
   ])
 
   const pointFromEvent = (event: ReactPointerEvent<HTMLCanvasElement>) => {
@@ -363,7 +400,12 @@ export function PracticeCanvas({
         className="absolute inset-0 h-full w-full"
         aria-hidden="true"
       >
-        <GridLines size={size} padding={padding} style={grid} />
+        <GridLines
+          size={size}
+          padding={padding}
+          style={grid}
+          flashIntensity={flashIntensity}
+        />
         {blendOutline || (mode === 'guided' && showOutline) ? (
           <Outline
             data={data}
@@ -373,7 +415,7 @@ export function PracticeCanvas({
             isDark={isDark}
             acceptedCount={acceptedStrokes.length}
             blend={blendOutline}
-            successFlash={successFlash}
+            flashIntensity={flashIntensity}
           />
         ) : null}
         {hintVisible ? (

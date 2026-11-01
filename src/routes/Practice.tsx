@@ -88,9 +88,8 @@ export function Practice() {
   const [hintRequested, setHintRequested] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [watchOpen, setWatchOpen] = useState(false)
-  const [successFlash, setSuccessFlash] = useState(false)
+  const [successFlashKey, setSuccessFlashKey] = useState(0)
   const acceptedRef = useRef<Point[][]>([])
-  const flashTimersRef = useRef<number[]>([])
 
   useEffect(() => {
     loadEntries()
@@ -126,33 +125,16 @@ export function Practice() {
     [strokeData],
   )
 
-  const clearFlashTimers = useCallback(() => {
-    for (const timer of flashTimersRef.current) window.clearTimeout(timer)
-    flashTimersRef.current = []
-  }, [])
-
   const triggerSuccessFlash = useCallback(() => {
-    clearFlashTimers()
-    setSuccessFlash(true)
-    flashTimersRef.current = [
-      window.setTimeout(() => setSuccessFlash(false), 160),
-      window.setTimeout(() => setSuccessFlash(true), 300),
-      window.setTimeout(() => setSuccessFlash(false), 460),
-    ]
-  }, [clearFlashTimers])
+    setSuccessFlashKey((key) => key + 1)
+  }, [])
 
   const resetStrokes = useCallback(() => {
     acceptedRef.current = []
     setAcceptedStrokes([])
     setCurrentMistakes(0)
     setHintRequested(false)
-    setSuccessFlash(false)
-    clearFlashTimers()
-  }, [clearFlashTimers])
-
-  useEffect(() => {
-    return () => clearFlashTimers()
-  }, [clearFlashTimers])
+  }, [])
 
   useEffect(() => {
     resetStrokes()
@@ -182,7 +164,7 @@ export function Practice() {
         return next
       })
       if (autoAdvance && index < characters.length - 1) {
-        window.setTimeout(() => goToIndex(index + 1), 900)
+        window.setTimeout(() => goToIndex(index + 1), 1000)
       }
     },
     [autoAdvance, characters.length, goToIndex],
@@ -230,14 +212,12 @@ export function Practice() {
     setAcceptedStrokes(acceptedRef.current)
     setCurrentMistakes(0)
     setHintRequested(false)
-    setSuccessFlash(false)
-    clearFlashTimers()
     setCompleted((current) => {
       const next = new Set(current)
       next.delete(charIndex)
       return next
     })
-  }, [charIndex, clearFlashTimers])
+  }, [charIndex])
 
   const handleRestart = useCallback(() => {
     resetStrokes()
@@ -364,7 +344,7 @@ export function Practice() {
             grid={grid}
             showOutline={showOutline}
             blendOutline={blendOutline}
-            successFlash={successFlash}
+            successFlashKey={successFlashKey}
             showNumbers={showNumbers}
             acceptedStrokes={acceptedStrokes}
             hintVisible={showHint && !isComplete}

@@ -4,10 +4,12 @@ export function GridLines({
   size,
   padding,
   style,
+  flashIntensity = 0,
 }: {
   size: number
   padding: number
   style: GridStyle
+  flashIntensity?: number
 }) {
   if (style === 'none' || size <= 0) return null
   const inner = size - padding * 2
@@ -43,6 +45,19 @@ export function GridLines({
           />
         </>
       ) : null}
+      {flashIntensity > 0 ? (
+        <rect
+          x={left}
+          y={top}
+          width={inner}
+          height={inner}
+          rx={8}
+          fill="none"
+          stroke="var(--success)"
+          strokeWidth={3}
+          opacity={flashIntensity * 0.9}
+        />
+      ) : null}
     </g>
   )
 }
@@ -51,10 +66,12 @@ export function PracticeGrid({
   size,
   padding,
   style,
+  flashIntensity = 0,
 }: {
   size: number
   padding: number
   style: GridStyle
+  flashIntensity?: number
 }) {
   if (style === 'none' || size <= 0) return null
   return (
@@ -65,7 +82,12 @@ export function PracticeGrid({
       className="h-full w-full"
       aria-hidden="true"
     >
-      <GridLines size={size} padding={padding} style={style} />
+      <GridLines
+        size={size}
+        padding={padding}
+        style={style}
+        flashIntensity={flashIntensity}
+      />
     </svg>
   )
 }
