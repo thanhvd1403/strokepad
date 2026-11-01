@@ -9,6 +9,7 @@ interface SettingsState {
   mode: PracticeMode
   grid: GridStyle
   showOutline: boolean
+  blendOutline: boolean
   showNumbers: boolean
   hints: boolean
   autoAdvance: boolean
@@ -20,6 +21,7 @@ interface SettingsState {
   setMode: (mode: PracticeMode) => void
   setGrid: (grid: GridStyle) => void
   setShowOutline: (value: boolean) => void
+  setBlendOutline: (value: boolean) => void
   setShowNumbers: (value: boolean) => void
   setHints: (value: boolean) => void
   setAutoAdvance: (value: boolean) => void
@@ -41,6 +43,7 @@ export const useSettings = create<SettingsState>()(
       mode: 'guided',
       grid: 'rice',
       showOutline: true,
+      blendOutline: false,
       showNumbers: false,
       hints: true,
       autoAdvance: false,
@@ -56,6 +59,7 @@ export const useSettings = create<SettingsState>()(
       setMode: (mode) => set({ mode }),
       setGrid: (grid) => set({ grid }),
       setShowOutline: (showOutline) => set({ showOutline }),
+      setBlendOutline: (blendOutline) => set({ blendOutline }),
       setShowNumbers: (showNumbers) => set({ showNumbers }),
       setHints: (hints) => set({ hints }),
       setAutoAdvance: (autoAdvance) => set({ autoAdvance }),

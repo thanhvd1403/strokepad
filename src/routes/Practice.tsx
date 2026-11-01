@@ -1,6 +1,5 @@
 import {
   ArrowLeft,
-  Check,
   ChevronLeft,
   ChevronRight,
   Lightbulb,
@@ -64,6 +63,8 @@ export function Practice() {
   const setGrid = useSettings((state) => state.setGrid)
   const showOutline = useSettings((state) => state.showOutline)
   const setShowOutline = useSettings((state) => state.setShowOutline)
+  const blendOutline = useSettings((state) => state.blendOutline)
+  const setBlendOutline = useSettings((state) => state.setBlendOutline)
   const showNumbers = useSettings((state) => state.showNumbers)
   const setShowNumbers = useSettings((state) => state.setShowNumbers)
   const hints = useSettings((state) => state.hints)
@@ -87,7 +88,9 @@ export function Practice() {
   const [hintRequested, setHintRequested] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [watchOpen, setWatchOpen] = useState(false)
+  const [successFlash, setSuccessFlash] = useState(false)
   const acceptedRef = useRef<Point[][]>([])
+  const flashTimersRef = useRef<number[]>([])
 
   useEffect(() => {
     loadEntries()
@@ -123,12 +126,33 @@ export function Practice() {
     [strokeData],
   )
 
+  const clearFlashTimers = useCallback(() => {
+    for (const timer of flashTimersRef.current) window.clearTimeout(timer)
+    flashTimersRef.current = []
+  }, [])
+
+  const triggerSuccessFlash = useCallback(() => {
+    clearFlashTimers()
+    setSuccessFlash(true)
+    flashTimersRef.current = [
+      window.setTimeout(() => setSuccessFlash(false), 160),
+      window.setTimeout(() => setSuccessFlash(true), 300),
+      window.setTimeout(() => setSuccessFlash(false), 460),
+    ]
+  }, [clearFlashTimers])
+
   const resetStrokes = useCallback(() => {
     acceptedRef.current = []
     setAcceptedStrokes([])
     setCurrentMistakes(0)
     setHintRequested(false)
-  }, [])
+    setSuccessFlash(false)
+    clearFlashTimers()
+  }, [clearFlashTimers])
+
+  useEffect(() => {
+    return () => clearFlashTimers()
+  }, [clearFlashTimers])
 
   useEffect(() => {
     resetStrokes()
@@ -158,7 +182,7 @@ export function Practice() {
         return next
       })
       if (autoAdvance && index < characters.length - 1) {
-        window.setTimeout(() => goToIndex(index + 1), 700)
+        window.setTimeout(() => goToIndex(index + 1), 900)
       }
     },
     [autoAdvance, characters.length, goToIndex],
@@ -187,6 +211,7 @@ export function Practice() {
         if (sound && typeof navigator.vibrate === 'function') navigator.vibrate(8)
         if (acceptedRef.current.length === referenceStrokes.length) {
           markCompleted(charIndex)
+          triggerSuccessFlash()
         }
         return true
       }
@@ -196,7 +221,7 @@ export function Practice() {
       if (sound && typeof navigator.vibrate === 'function') navigator.vibrate([18, 28, 18])
       return false
     },
-    [charIndex, leniency, markCompleted, mode, referenceStrokes, sound],
+    [charIndex, leniency, markCompleted, mode, referenceStrokes, sound, triggerSuccessFlash],
   )
 
   const handleUndo = useCallback(() => {
@@ -205,12 +230,14 @@ export function Practice() {
     setAcceptedStrokes(acceptedRef.current)
     setCurrentMistakes(0)
     setHintRequested(false)
+    setSuccessFlash(false)
+    clearFlashTimers()
     setCompleted((current) => {
       const next = new Set(current)
       next.delete(charIndex)
       return next
     })
-  }, [charIndex])
+  }, [charIndex, clearFlashTimers])
 
   const handleRestart = useCallback(() => {
     resetStrokes()
@@ -231,8 +258,9 @@ export function Practice() {
     setHintRequested(false)
     if (acceptedRef.current.length === referenceStrokes.length) {
       markCompleted(charIndex)
+      triggerSuccessFlash()
     }
-  }, [charIndex, markCompleted, referenceStrokes])
+  }, [charIndex, markCompleted, referenceStrokes, triggerSuccessFlash])
 
   const textEntry = useMemo(() => findEntry(entries, text), [entries, text])
   const charEntry = useMemo(
@@ -248,7 +276,6 @@ export function Practice() {
 
   const isComplete =
     referenceStrokes.length > 0 && acceptedStrokes.length >= referenceStrokes.length
-  const allDone = characters.length > 1 && completed.size >= characters.length
   const showHint = hintRequested || (hints && currentMistakes >= hintAfter)
   const hintIndex = acceptedStrokes.length
 
@@ -336,6 +363,8 @@ export function Practice() {
             mode={mode}
             grid={grid}
             showOutline={showOutline}
+            blendOutline={blendOutline}
+            successFlash={successFlash}
             showNumbers={showNumbers}
             acceptedStrokes={acceptedStrokes}
             hintVisible={showHint && !isComplete}
@@ -351,42 +380,6 @@ export function Practice() {
           />
         )}
 
-        {isComplete ? (
-          <div className="absolute inset-0 grid place-items-center rounded-[1.6rem] bg-bg/70 backdrop-blur-[2px]">
-            <div className="animate-pop w-[86%] rounded-3xl border border-line bg-surface p-4 text-center shadow-xl">
-              <div className="mx-auto mb-2 grid h-11 w-11 place-items-center rounded-full bg-sage-soft text-sage">
-                <Check className="h-6 w-6" strokeWidth={3} />
-              </div>
-              <p className="text-sm font-bold text-ink">
-                {allDone ? t('practice.allDone') : t('practice.complete')}
-              </p>
-              <p className="mt-1 text-xs text-muted">
-                {currentChar} · {charEntry?.pinyin ?? pinyin(currentChar ?? '', { toneType: 'symbol' })}
-              </p>
-              <div className="mt-3 flex flex-wrap justify-center gap-2">
-                <Button variant="soft" size="sm" onClick={handleRestart}>
-                  {t('practice.practiceAgain')}
-                </Button>
-                {allDone ? (
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setCompleted(new Set())
-                      goToIndex(0)
-                    }}
-                  >
-                    {t('common.restart')}
-                  </Button>
-                ) : charIndex < characters.length - 1 ? (
-                  <Button size="sm" onClick={() => goToIndex(charIndex + 1)}>
-                    {t('practice.nextChar')}
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        ) : null}
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -572,6 +565,12 @@ export function Practice() {
               onChange={setShowOutline}
               label={t('practice.showOutline')}
               description={t('practice.guidedHint')}
+            />
+            <Toggle
+              checked={blendOutline}
+              onChange={setBlendOutline}
+              label={t('practice.blendOutline')}
+              description={t('practice.blendOutlineHint')}
             />
             <Toggle
               checked={showNumbers}

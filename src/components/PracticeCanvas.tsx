@@ -27,23 +27,43 @@ function Outline({
   size,
   padding,
   isDark,
+  acceptedCount,
+  blend,
+  successFlash,
 }: {
   data: StrokeData
   transform: CharacterTransform
   size: number
   padding: number
   isDark: boolean
+  acceptedCount: number
+  blend: boolean
+  successFlash: boolean
 }) {
   if (size <= 0) return null
+  const baseOpacity = isDark ? 0.16 : 0.09
+  const acceptedOpacity = isDark ? 0.72 : 0.58
+
   return (
-    <g
-      transform={characterTransformToSvg(transform, size, padding)}
-      fill="var(--text)"
-      opacity={isDark ? 0.16 : 0.09}
-    >
-      {data.strokes.map((path, index) => (
-        <path key={index} d={path} />
-      ))}
+    <g transform={characterTransformToSvg(transform, size, padding)}>
+      {data.strokes.map((path, index) => {
+        const accepted = index < acceptedCount
+        const flashGreen = successFlash && accepted
+        return (
+          <path
+            key={index}
+            d={path}
+            fill={flashGreen ? 'var(--success)' : 'var(--text)'}
+            opacity={
+              flashGreen
+                ? acceptedOpacity
+                : blend && accepted
+                  ? acceptedOpacity
+                  : baseOpacity
+            }
+          />
+        )
+      })}
     </g>
   )
 }
@@ -183,10 +203,12 @@ export function PracticeCanvas({
   mode,
   grid,
   showOutline,
+  blendOutline,
   showNumbers,
   acceptedStrokes,
   hintVisible,
   hintIndex,
+  successFlash,
   onStroke,
   onDrawStart,
   disabled = false,
@@ -195,10 +217,12 @@ export function PracticeCanvas({
   mode: PracticeMode
   grid: GridStyle
   showOutline: boolean
+  blendOutline: boolean
   showNumbers: boolean
   acceptedStrokes: Point[][]
   hintVisible: boolean
   hintIndex: number
+  successFlash: boolean
   onStroke: (stroke: Point[]) => boolean
   onDrawStart?: () => void
   disabled?: boolean
@@ -235,7 +259,9 @@ export function PracticeCanvas({
     const rootStyles = getComputedStyle(document.documentElement)
     const ink = rootStyles.getPropertyValue('--text').trim() || '#3d3a34'
     const danger = rootStyles.getPropertyValue('--danger').trim() || '#c25b5b'
+    const success = rootStyles.getPropertyValue('--success').trim() || '#4f7a4a'
     const width = Math.max(4, size * 0.018)
+    const acceptedColor = successFlash ? success : ink
 
     const drawStroke = (stroke: Point[], color: string, alpha = 1) => {
       if (stroke.length < 2) return
@@ -255,18 +281,32 @@ export function PracticeCanvas({
       ctx.restore()
     }
 
-    for (const stroke of acceptedStrokes) drawStroke(stroke, ink, 0.96)
+    if (!blendOutline) {
+      for (const stroke of acceptedStrokes) drawStroke(stroke, acceptedColor, 0.96)
+    }
     if (currentStrokeRef.current.length > 1) {
       drawStroke(currentStrokeRef.current, ink, 0.7)
     }
     if (wrongStrokeRef.current) {
       drawStroke(wrongStrokeRef.current, danger, 0.95)
     }
-  }, [acceptedStrokes, padding, size])
+  }, [acceptedStrokes, blendOutline, padding, size, successFlash])
 
   useEffect(() => {
     draw()
-  }, [draw, theme, systemDark, grid, mode, showOutline, showNumbers, hintVisible, hintIndex])
+  }, [
+    draw,
+    theme,
+    systemDark,
+    grid,
+    mode,
+    showOutline,
+    blendOutline,
+    showNumbers,
+    hintVisible,
+    hintIndex,
+    successFlash,
+  ])
 
   const pointFromEvent = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current
@@ -314,7 +354,7 @@ export function PracticeCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative mx-auto aspect-square w-full max-w-[min(86vw,380px)] select-none"
+      className="relative mx-auto aspect-square w-full max-w-[min(86vw,380px)] select-none rounded-[1.4rem]"
     >
       <svg
         viewBox={`0 0 ${Math.max(size, 1)} ${Math.max(size, 1)}`}
@@ -324,13 +364,16 @@ export function PracticeCanvas({
         aria-hidden="true"
       >
         <GridLines size={size} padding={padding} style={grid} />
-        {mode === 'guided' && showOutline ? (
+        {blendOutline || (mode === 'guided' && showOutline) ? (
           <Outline
             data={data}
             transform={transform}
             size={size}
             padding={padding}
             isDark={isDark}
+            acceptedCount={acceptedStrokes.length}
+            blend={blendOutline}
+            successFlash={successFlash}
           />
         ) : null}
         {hintVisible ? (

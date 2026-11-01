@@ -84,6 +84,9 @@ const en = {
     guidedHint: 'Trace the faint outline. Strokes must be in order.',
     plainHint: 'Write freely. Position is checked leniently.',
     showOutline: 'Outline',
+    blendOutline: 'Blend into outline',
+    blendOutlineHint:
+      'Correct strokes fill the shadow instead of showing your own ink.',
     showNumbers: 'Stroke numbers',
     hints: 'Hints',
     autoAdvance: 'Auto advance',
@@ -274,6 +277,9 @@ const vi = {
     guidedHint: 'Đồ theo nét mờ. Phải viết đúng thứ tự nét.',
     plainHint: 'Viết tự do. Vị trí được kiểm tra linh hoạt.',
     showOutline: 'Nét mờ',
+    blendOutline: 'Hòa vào nét mờ',
+    blendOutlineHint:
+      'Nét đúng sẽ điền vào nét mờ thay vì hiện nét bạn vẽ.',
     showNumbers: 'Số nét',
     hints: 'Gợi ý',
     autoAdvance: 'Tự chuyển',
