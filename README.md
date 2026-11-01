@@ -4,8 +4,8 @@ A calm, offline-first mobile web app for learning Chinese characters by writing
 them. Search by Chinese or pinyin, practice stroke by stroke, and keep the
 characters you love close.
 
-Built as a PWA with React, TypeScript, and Vite. It can be installed to a phone's
-home screen and used offline after the first visit.
+Built as a PWA with React, TypeScript, and Vite. Install it to a phone's home
+screen and use it offline after the first visit.
 
 ## Features
 
@@ -18,6 +18,11 @@ home screen and used offline after the first visit.
   stroke-by-stroke validation. Wrong strokes are rejected and can be retried.
 - **Plain mode** — no outline, with lenient position matching so off-centre
   writing still counts.
+- **Blend into outline** — an optional mode where a correct stroke replaces
+  your ink with the character's shadow outline, so the character builds up line
+  by line in stroke order.
+- **Completion flash** — one smooth green fade across the character and the grid
+  border when all strokes are correct. No popup.
 - **Stroke-order animation** — watch the character drawn stroke by stroke, on
   the same grid used for practice.
 - **Favorites** — save characters, words, and sentences.
@@ -28,6 +33,42 @@ home screen and used offline after the first visit.
 - **Offline** — app shell, dictionary, and stroke data are cached; favorites are
   stored locally in IndexedDB.
 - **Export / import favorites** — JSON backup for moving between devices.
+- **Polyphonic readings** — tone-distinguished entries keep their own pinyin and
+  definitions, for example 得 `dé` / `de` / `děi`, 过 `guò` / `guo`, and
+  只 `zhǐ` / `zhī`.
+
+## Practice options
+
+Open the gear icon on the practice screen to adjust:
+
+| Option | What it does |
+| --- | --- |
+| Guided / Plain | Switch between tracing the shadow and writing freely. |
+| Grid | Rice grid (米字格), field grid (田字格), or no grid. |
+| Blend into outline | Correct strokes fill the shadow instead of showing your ink. |
+| Outline | Show or hide the faint character shadow. |
+| Stroke numbers | Show the start point and number of each stroke. |
+| Hints | Show the next stroke as a dashed guide after misses. |
+| Leniency | Make stroke grading stricter or more forgiving. |
+| Hint after misses | Choose when the next-stroke hint appears. |
+| Auto advance | Move to the next character after a short completion flash. |
+| Sound & vibration | Haptic feedback on correct and incorrect strokes. |
+
+After four misses on the same stroke, a **Mark correct** button appears as an
+escape hatch.
+
+## Tech stack
+
+- React 19 + TypeScript + Vite 8
+- Tailwind CSS 4
+- React Router 7
+- Zustand (settings) + Dexie (favorites in IndexedDB)
+- [Hanzi Writer](https://github.com/chanind/hanzi-writer) for stroke-order animation
+- [pinyin-pro](https://github.com/zh-lx/pinyin-pro) for pinyin conversion and matching
+- [svg-path-bounds](https://github.com/hughsk/svg-path-bounds) for centring glyphs
+- i18next / react-i18next
+- vite-plugin-pwa + Workbox for offline support
+- oxlint for linting
 
 ## Getting started
 
@@ -45,9 +86,11 @@ npm run build
 npm run preview
 ```
 
-The build output is in `dist/`. Deploy it to any static host. The app uses
-`BrowserRouter`, so configure an SPA fallback to `index.html` (Cloudflare Pages
-needs a `_redirects` file with `/* /index.html 200`; Vercel needs a rewrite).
+The build output is in `dist/`. Deploy it to any static host.
+
+- **Cloudflare Pages:** `public/_redirects` already contains `/* /index.html 200`.
+- **Netlify:** the same `public/_redirects` file works.
+- **Vercel:** add a rewrite of all routes to `/index.html`.
 
 ## Data pipeline
 
@@ -66,7 +109,14 @@ npm run data:build    # generate public/data/entries.json + strokes/
 
 `npm run data:build` requires `hanzi-writer-data` (installed by npm) and the raw
 sources in `data/sources/`. The build script checks for them and tells you what
-is missing.
+is missing. Raw sources are gitignored; the generated data under `public/data/`
+is committed so deployments work without re-downloading the dictionaries.
+
+Current output:
+
+- **13,118 dictionary entries** (3,000 characters + 10,118 words)
+- **3,000 stroke JSON files**, plus CDN fallback for characters outside the HSK set
+- `public/data/SOURCE.json` records the source URLs and SHA-256 hashes
 
 ### Sources
 
@@ -88,9 +138,9 @@ The application code is MIT licensed. See [`LICENSE`](./LICENSE).
 
 ## How stroke checking works
 
-The app uses the stroke medians from Make Me a Hanzi. Each character is
-centred and scaled using the bounds of its actual SVG outlines, so the guided
-shadow sits neatly inside the grid.
+The app uses the stroke medians from Make Me a Hanzi. Each character is centred
+and scaled using the bounds of its actual SVG outlines, so the guided shadow
+sits neatly inside the grid.
 
 For every pointer stroke:
 
@@ -104,8 +154,7 @@ For every pointer stroke:
    in practice settings adjusts the threshold.
 
 The matcher is intentionally forgiving for short strokes (dots and 提) and
-stricter about shape and direction for long strokes. A “Mark correct” escape
-hatch appears after repeated misses.
+stricter about shape and direction for long strokes.
 
 ## Project structure
 
@@ -132,11 +181,33 @@ public/
 
 - **Light theme:** cream pastel (`#fbf6ec` base, terracotta accent).
 - **Dark theme:** Catppuccin Mocha (`#1e1e2e` Base, `#313244` Surface0,
-  `#cdd6f4` Text, `#f5c2e7` Pink accent).
-- Typography uses system fonts for fast loading; Chinese uses the system
-  CJK font stack.
+  `#45475a` Surface1, `#cdd6f4` Text, `#a6adc8` Subtext0, `#f5c2e7` Pink
+  accent). The soft accent backgrounds are the official accents blended 18%
+  over Base.
+- Typography uses system fonts for fast loading; Chinese uses the system CJK
+  font stack.
 - The practice screen is intentionally quiet: grid, character, controls, and a
   compact meaning card.
+- The completion flash is a single 900ms fade: 180ms in, 270ms hold, 450ms out.
+  It fades the accepted strokes and the grid border to green without a glow.
+
+## Testing
+
+There is no automated test suite yet. Manual checks cover:
+
+- Search by Chinese, full pinyin, initials, and spaced pinyin.
+- HSK filter changes the result set.
+- Guided mode accepts all strokes of a character and rejects wrong strokes.
+- Plain mode accepts an off-centre stroke.
+- Blend-into-outline mode leaves no ink on the canvas and reveals the shadow.
+- Completion flash has no popup and fades the grid border and strokes.
+- Favorites add/remove and persist across reloads.
+- English/Vietnamese and light/dark toggles.
+- Production PWA registers a service worker and caches the dictionary and
+  strokes.
+
+Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
+1.0 SEO**.
 
 ## Roadmap
 
@@ -147,14 +218,18 @@ public/
   screen).
 - Printable practice worksheets.
 - Optional Capacitor wrapper for app-store distribution.
+- Automated tests for the stroke matcher and data pipeline.
 
 ## Notes
 
 - The dictionary is fetched once and cached by the service worker. On a slow
-  first visit the search screen shows a loading state.
+  first visit the search screen shows a loading state. The file is about 3.5 MB
+  uncompressed; hosting it with gzip/brotli is recommended.
 - The app has no backend and no accounts. Favorites live in IndexedDB on the
   device; use export/import to move them.
 - CVDICT is largely machine-translated from CC-CEDICT. Some Vietnamese
   definitions may be imperfect.
 - HSK lists are OCR-derived from the official 2021 standard; a small number of
   entries may need correction.
+- iOS PWA limitations: storage may be evicted, and haptics are not available.
+  A Capacitor wrapper is the path to full native distribution later.
