@@ -14,7 +14,7 @@ import { Badge, Button, Card, Segmented, Toggle } from '../components/ui'
 import { clearLocalData, exportFavorites, importFavorites } from '../lib/db'
 import { useInstallPrompt } from '../lib/hooks'
 import { useSettings } from '../store/settings'
-import type { GridStyle, Language, PracticeMode, Theme } from '../types'
+import type { GridStyle, Language, PracticeMode, Script, Theme } from '../types'
 
 function Section({
   title,
@@ -37,6 +37,8 @@ export function Settings() {
   const { t } = useTranslation()
   const language = useSettings((state) => state.language)
   const setLanguage = useSettings((state) => state.setLanguage)
+  const script = useSettings((state) => state.script)
+  const setScript = useSettings((state) => state.setScript)
   const theme = useSettings((state) => state.theme)
   const setTheme = useSettings((state) => state.setTheme)
   const mode = useSettings((state) => state.mode)
@@ -89,6 +91,23 @@ export function Settings() {
               { value: 'vi', label: 'Tiếng Việt' },
             ]}
           />
+        </div>
+      </Section>
+
+      <Section title={t('settings.script')}>
+        <div className="py-3">
+          <Segmented
+            className="w-full"
+            value={script}
+            onChange={(value: Script) => setScript(value)}
+            options={[
+              { value: 'simplified', label: t('settings.scriptSimplified') },
+              { value: 'traditional', label: t('settings.scriptTraditional') },
+            ]}
+          />
+          <p className="mt-2 text-xs leading-relaxed text-muted">
+            {t('settings.scriptHint')}
+          </p>
         </div>
       </Section>
 

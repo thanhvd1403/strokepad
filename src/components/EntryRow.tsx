@@ -1,5 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { entryStrokes, entryText } from '../lib/script'
 import { useSettings } from '../store/settings'
 import type { Entry } from '../types'
 import { Badge } from './ui'
@@ -22,10 +23,13 @@ export function EntryRow({
 }) {
   const { t } = useTranslation()
   const language = useSettings((state) => state.language)
+  const script = useSettings((state) => state.script)
   const primary = language === 'vi' ? entry.vi[0] : entry.en[0]
   const fallback = language === 'vi' ? entry.en[0] : entry.vi[0]
   const meaning = primary ?? fallback
   const usedFallback = !primary && Boolean(fallback)
+  const display = entryText(entry, script)
+  const strokes = entryStrokes(entry, script)
 
   return (
     <div
@@ -41,12 +45,12 @@ export function EntryRow({
       className="group flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-transparent px-2 py-2.5 text-left transition hover:border-line hover:bg-surface-2/60 active:scale-[0.995]"
     >
       <span className="hanzi grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent-soft/70 text-2xl font-medium text-ink">
-        {entry.simp}
+        {display}
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <span className="hanzi truncate text-base font-semibold text-ink">
-            {entry.simp}
+            {display}
           </span>
           <span className="truncate text-[13px] font-medium text-accent">{entry.pinyin}</span>
         </span>
@@ -62,9 +66,9 @@ export function EntryRow({
           <Badge tone={hskTone(entry.hsk)}>
             {entry.hsk === 0 ? t('common.common') : `HSK ${entry.hsk}`}
           </Badge>
-          {entry.strokes > 0 ? (
+          {strokes > 0 ? (
             <span className="text-[11px] font-medium text-muted">
-              {entry.strokes} {t('common.strokes', { count: entry.strokes })}
+              {strokes} {t('common.strokes', { count: strokes })}
             </span>
           ) : null}
         </span>

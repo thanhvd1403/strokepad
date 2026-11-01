@@ -26,6 +26,9 @@ screen and use it offline after the first visit.
 - **Stroke-order animation** — watch the character drawn stroke by stroke, on
   the same grid used for practice.
 - **Favorites** — save characters, words, and sentences.
+- **Simplified and traditional Chinese** — switch the whole app between
+  simplified and traditional characters from the header or settings. Search
+  works in either form, and traditional characters load their own stroke data.
 - **English and Vietnamese** — UI and dictionary meanings, with a language
   toggle.
 - **Light and dark themes** — cream pastel light theme, Catppuccin Mocha dark
@@ -44,6 +47,7 @@ Open the gear icon on the practice screen to adjust:
 | Option | What it does |
 | --- | --- |
 | Guided / Plain | Switch between tracing the shadow and writing freely. |
+| Script | Switch between simplified and traditional characters. |
 | Grid | Rice grid (米字格), field grid (田字格), or no grid. |
 | Blend into outline | Correct strokes fill the shadow instead of showing your ink. |
 | Outline | Show or hide the faint character shadow. |
@@ -115,7 +119,10 @@ is committed so deployments work without re-downloading the dictionaries.
 Current output:
 
 - **13,118 dictionary entries** (3,000 characters + 10,118 words)
-- **3,000 stroke JSON files**, plus CDN fallback for characters outside the HSK set
+- **4,194 stroke JSON files**, covering both simplified and traditional forms,
+  plus CDN fallback for characters outside the bundled set
+- Traditional variants in the HSK lists are resolved to a drawable form, and
+  each entry stores separate simplified and traditional stroke totals
 - `public/data/SOURCE.json` records the source URLs and SHA-256 hashes
 
 ### Sources
@@ -161,7 +168,7 @@ stricter about shape and direction for long strokes.
 ```
 src/
 ├─ components/      UI, practice canvas, grid, character strip, etc.
-├─ lib/             search, stroke matching, IndexedDB, hooks
+├─ lib/             search, script conversion, stroke matching, IndexedDB, hooks
 ├─ routes/          Home, Practice, Favorites, Settings, Licenses
 ├─ store/           persisted settings (Zustand)
 ├─ i18n.ts          English + Vietnamese strings
@@ -202,7 +209,11 @@ There is no automated test suite yet. Manual checks cover:
 - Blend-into-outline mode leaves no ink on the canvas and reveals the shadow.
 - Completion flash has no popup and fades the grid border and strokes.
 - Favorites add/remove and persist across reloads.
-- English/Vietnamese and light/dark toggles.
+- English/Vietnamese, simplified/traditional, and light/dark toggles.
+- Traditional search and practice: 说/說 both resolve, 說 draws with 14 strokes,
+  and a sentence like 我的头发 converts to 我的頭髮.
+- Favorites saved in traditional mode reopen in traditional and stay canonical
+  in storage.
 - Production PWA registers a service worker and caches the dictionary and
   strokes.
 
@@ -211,7 +222,6 @@ Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
 
 ## Roadmap
 
-- Traditional Chinese toggle.
 - Audio pronunciation.
 - Mastery tracking and spaced repetition.
 - Share Target API (share Chinese text from another app into the practice
@@ -223,7 +233,7 @@ Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
 ## Notes
 
 - The dictionary is fetched once and cached by the service worker. On a slow
-  first visit the search screen shows a loading state. The file is about 3.5 MB
+  first visit the search screen shows a loading state. The file is about 3.7 MB
   uncompressed; hosting it with gzip/brotli is recommended.
 - The app has no backend and no accounts. Favorites live in IndexedDB on the
   device; use export/import to move them.

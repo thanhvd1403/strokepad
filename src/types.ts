@@ -13,6 +13,7 @@ export interface Entry {
   hsk: number
   freq: number
   strokes: number
+  tradStrokes: number
   pos?: string
 }
 
@@ -36,6 +37,7 @@ export interface Favorite {
 
 export type PracticeMode = 'guided' | 'plain'
 export type GridStyle = 'rice' | 'field' | 'none'
+export type Script = 'simplified' | 'traditional'
 export type Language = 'en' | 'vi'
 export type Theme = 'light' | 'dark' | 'system'
 

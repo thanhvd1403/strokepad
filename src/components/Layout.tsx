@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { clsx } from 'clsx'
 import { LanguageToggle } from './LanguageToggle'
+import { ScriptToggle } from './ScriptToggle'
 import { ThemeToggle } from './ThemeToggle'
 
 function BottomNav() {
@@ -74,6 +75,7 @@ export function Layout() {
             </span>
           </Link>
           <div className="flex items-center gap-1">
+            <ScriptToggle />
             <LanguageToggle />
             <ThemeToggle />
           </div>

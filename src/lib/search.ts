@@ -87,15 +87,14 @@ export function searchEntries(
 }
 
 export function findEntry(entries: Entry[], text: string): Entry | undefined {
-  if (text.length === 1) {
+  const matches = (entry: Entry) => entry.simp === text || entry.trad === text
+  if ([...text].length === 1) {
     return (
-      entries.find((e) => e.type === 'char' && e.simp === text) ??
-      entries.find((e) => e.simp === text)
+      entries.find((e) => e.type === 'char' && matches(e)) ?? entries.find(matches)
     )
   }
   return (
-    entries.find((e) => e.type === 'word' && e.simp === text) ??
-    entries.find((e) => e.simp === text)
+    entries.find((e) => e.type === 'word' && matches(e)) ?? entries.find(matches)
   )
 }
 

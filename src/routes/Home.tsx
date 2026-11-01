@@ -14,13 +14,17 @@ import {
   starterEntries,
   type RankedEntry,
 } from '../lib/search'
-import type { Entry, EntryData } from '../types'
+import { entryText } from '../lib/script'
+import { useSettings } from '../store/settings'
+import type { Entry, EntryData, Script } from '../types'
 
 function StarterGrid({
   entries,
+  script,
   onPick,
 }: {
   entries: Entry[]
+  script: Script
   onPick: (entry: Entry) => void
 }) {
   return (
@@ -32,7 +36,9 @@ function StarterGrid({
           onClick={() => onPick(entry)}
           className="group flex flex-col items-center gap-1 rounded-2xl border border-line bg-surface px-2 py-3 transition hover:border-accent/40 hover:bg-accent-soft/30 active:scale-95"
         >
-          <span className="hanzi text-3xl font-medium text-ink">{entry.simp}</span>
+          <span className="hanzi text-3xl font-medium text-ink">
+            {entryText(entry, script)}
+          </span>
           <span className="text-[13px] font-medium text-muted">{entry.pinyin}</span>
         </button>
       ))}
@@ -122,6 +128,7 @@ function HowItWorks() {
 export function Home() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const script = useSettings((state) => state.script)
   const [searchParams, setSearchParams] = useSearchParams()
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '')
   const [hskLevels, setHskLevels] = useState<number[]>(() =>
@@ -171,8 +178,9 @@ export function Home() {
   }
 
   const practiceEntry = (entry: Entry | RankedEntry) => {
-    add(entry.simp)
-    practiceText(entry.simp)
+    const display = entryText(entry, script)
+    add(display)
+    practiceText(display)
   }
 
   const practiceSentence = (text: string) => {
@@ -219,6 +227,8 @@ export function Home() {
         <SearchResults
           results={results}
           query={query}
+          script={script}
+          entries={data.entries}
           onPractice={practiceEntry}
           onPracticeSentence={practiceSentence}
         />
@@ -237,7 +247,7 @@ export function Home() {
               </h2>
               <Badge tone="sage">HSK 1</Badge>
             </div>
-            <StarterGrid entries={starters} onPick={practiceEntry} />
+            <StarterGrid entries={starters} script={script} onPick={practiceEntry} />
             <Button
               variant="soft"
               className="w-full"

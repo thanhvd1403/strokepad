@@ -1,11 +1,14 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronRight, PenLine, Star, Trash2 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Badge, Button, Card, EmptyState, Segmented } from '../components/ui'
+import { loadEntries } from '../lib/data'
 import { db, removeFavorite } from '../lib/db'
-import type { Favorite, FavoriteType } from '../types'
+import { toScript } from '../lib/script'
+import { useSettings } from '../store/settings'
+import type { Entry, Favorite, FavoriteType } from '../types'
 
 type Tab = 'all' | FavoriteType
 
@@ -17,9 +20,11 @@ const typeTone: Record<FavoriteType, 'accent' | 'sage' | 'lavender'> = {
 
 function FavoriteRow({
   favorite,
+  displayText,
   onPractice,
 }: {
   favorite: Favorite
+  displayText: string
   onPractice: (favorite: Favorite) => void
 }) {
   const { t } = useTranslation()
@@ -38,11 +43,11 @@ function FavoriteRow({
       className="group flex cursor-pointer items-center gap-3 px-3 py-3 transition hover:bg-surface-2/60"
     >
       <div className="hanzi grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-surface-2 text-xl font-medium text-ink">
-        {favorite.text.slice(0, 1)}
+        {displayText.slice(0, 1)}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <p className="hanzi truncate text-sm font-semibold text-ink">{favorite.text}</p>
+          <p className="hanzi truncate text-sm font-semibold text-ink">{displayText}</p>
           {favorite.pinyin ? (
             <p className="truncate text-[13px] font-medium text-accent">{favorite.pinyin}</p>
           ) : null}
@@ -80,22 +85,32 @@ function FavoriteRow({
 export function Favorites() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const script = useSettings((state) => state.script)
+  const [entries, setEntries] = useState<Entry[]>([])
   const [tab, setTab] = useState<Tab>('all')
   const favorites = useLiveQuery(() => db.favorites.orderBy('createdAt').reverse().toArray(), [])
+
+  useEffect(() => {
+    loadEntries()
+      .then((data) => setEntries(data.entries))
+      .catch(() => setEntries([]))
+  }, [])
 
   const filtered = useMemo(() => {
     if (!favorites) return []
     return tab === 'all' ? favorites : favorites.filter((item) => item.type === tab)
   }, [favorites, tab])
 
+  const displayText = (text: string) => toScript(text, script, entries)
+
   const practice = (favorite: Favorite) => {
-    navigate(`/practice?text=${encodeURIComponent(favorite.text)}&i=0`)
+    navigate(`/practice?text=${encodeURIComponent(displayText(favorite.text))}&i=0`)
   }
 
   const practiceAll = () => {
     const text = filtered
       .slice(0, 20)
-      .map((favorite) => favorite.text)
+      .map((favorite) => displayText(favorite.text))
       .join('')
     if (text) navigate(`/practice?text=${encodeURIComponent(text)}&i=0`)
   }
@@ -160,7 +175,12 @@ export function Favorites() {
       ) : (
         <Card className="divide-y divide-line/60 p-1">
           {filtered.map((favorite) => (
-            <FavoriteRow key={favorite.id} favorite={favorite} onPractice={practice} />
+            <FavoriteRow
+              key={favorite.id}
+              favorite={favorite}
+              displayText={displayText(favorite.text)}
+              onPractice={practice}
+            />
           ))}
         </Card>
       )}

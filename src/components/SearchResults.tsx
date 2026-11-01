@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { pinyin } from 'pinyin-pro'
 import { containsHan, isHan, type RankedEntry } from '../lib/search'
-import type { Entry } from '../types'
+import { toScript } from '../lib/script'
+import type { Entry, Script } from '../types'
 import { Badge, Button, Card, EmptyState } from './ui'
 import { EntryRow } from './EntryRow'
 import { FavoriteButton } from './FavoriteButton'
@@ -11,11 +12,15 @@ import { FavoriteButton } from './FavoriteButton'
 export function SearchResults({
   results,
   query,
+  script,
+  entries,
   onPractice,
   onPracticeSentence,
 }: {
   results: RankedEntry[]
   query: string
+  script: Script
+  entries: Entry[]
   onPractice: (entry: Entry) => void
   onPracticeSentence: (text: string) => void
 }) {
@@ -23,9 +28,15 @@ export function SearchResults({
   const [limit, setLimit] = useState(30)
   const trimmed = query.trim()
   const hanChars = [...trimmed].filter(isHan)
-  const exactWord = results.some((entry) => entry.simp === trimmed && entry.type === 'word')
-  const sentence =
+  const exactWord = results.some(
+    (entry) => entry.type === 'word' && (entry.simp === trimmed || entry.trad === trimmed),
+  )
+  const rawSentence =
     containsHan(trimmed) && hanChars.length > 1 && !exactWord ? trimmed : null
+  const sentence = rawSentence ? toScript(rawSentence, script, entries) : null
+  const canonicalSentence = rawSentence
+    ? toScript(rawSentence, 'simplified', entries)
+    : null
 
   return (
     <div className="space-y-3">
@@ -38,7 +49,7 @@ export function SearchResults({
             </Badge>
             <FavoriteButton
               type="sentence"
-              text={sentence}
+              text={canonicalSentence ?? sentence}
               pinyin={pinyin(sentence, { toneType: 'symbol' })}
               meaning={sentence}
               size="sm"

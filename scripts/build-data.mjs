@@ -31,6 +31,29 @@ fs.mkdirSync(path.join(ROOT, 'public', 'licenses'), { recursive: true })
 const HAN = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/
 const isHan = (ch) => HAN.test(ch)
 
+function tradVariants(value) {
+  return String(value ?? '')
+    .split(/[/|]/)
+    .map((variant) => variant.trim())
+    .filter(Boolean)
+}
+
+function hasStrokeForChar(ch) {
+  return fs.existsSync(path.join(STROKE_SRC, `${ch}.json`))
+}
+
+function hasStrokeForAll(value) {
+  return [...value].filter(isHan).every(hasStrokeForChar)
+}
+
+// HSK's traditional column sometimes lists variants ("裡/裏/里"). Prefer the
+// first variant that we can actually draw, so practice never hits missing data.
+function pickTrad(value, fallback) {
+  const variants = tradVariants(value)
+  if (!variants.length) return fallback
+  return variants.find(hasStrokeForAll) ?? variants[0]
+}
+
 function toFlat(value) {
   return String(value)
     .replace(/u:/g, 'v')
@@ -156,6 +179,7 @@ for (const row of wordRows) {
     singleCharWords.set(simp, {
       pinyin: row.Pinyin.trim(),
       level,
+      trad: row.Traditional?.trim(),
       ref: parseReference(row.CEDICT),
     })
   }
@@ -227,7 +251,7 @@ for (const row of charRows) {
     id,
     type: 'char',
     simp: ch,
-    trad: row.Traditional || ch,
+    trad: pickTrad(wordForm?.trad ?? row.Traditional, ch),
     pinyin: display,
     pinyinFlat: flat,
     initials: toInitials(ch),
@@ -284,7 +308,7 @@ for (const group of wordGroups.values()) {
     id,
     type: 'word',
     simp,
-    trad: group.trad,
+    trad: pickTrad(group.trad, simp),
     pinyin: py,
     pinyinFlat: flat,
     initials: toInitials(simp),
@@ -323,7 +347,7 @@ for (const [word, rank] of freqMap) {
     id,
     type: 'word',
     simp: word,
-    trad: en.bySimp.get(word)?.trad ?? word,
+    trad: pickTrad(en.bySimp.get(word)?.trad ?? word, word),
     pinyin: py,
     pinyinFlat: flat,
     initials: toInitials(word),
@@ -339,6 +363,42 @@ for (const [word, rank] of freqMap) {
 }
 console.log(`  + ${commonAdded} common non-HSK words`)
 
+// Resolve rare traditional variants inside words to the drawable character
+// form we already chose for the single-character entry. For example 哗然 is
+// listed as 譁然, but the character entry uses 嘩 (which has stroke data).
+const charTradMap = new Map()
+for (const entry of entries) {
+  if (entry.type === 'char' && entry.trad && entry.trad !== entry.simp) {
+    charTradMap.set(entry.simp, entry.trad)
+  }
+}
+
+for (const entry of entries) {
+  if (entry.type !== 'word') continue
+  const simpChars = [...entry.simp]
+  const tradChars = [...entry.trad]
+  if (simpChars.length !== tradChars.length) continue
+  entry.trad = tradChars
+    .map((tradChar, index) => {
+      if (hasStrokeForChar(tradChar)) return tradChar
+      const mapped = charTradMap.get(simpChars[index])
+      return mapped && hasStrokeForChar(mapped) ? mapped : tradChar
+    })
+    .join('')
+}
+
+// Traditional forms are often more complex than their simplified counterparts,
+// so stroke totals are counted separately. This pass also copies stroke data
+// for every traditional character the dictionary can display.
+for (const entry of entries) {
+  const tradChars = [...entry.trad].filter(isHan)
+  const counts = tradChars.map(ensureStroke)
+  entry.tradStrokes =
+    counts.length > 0 && counts.every((count) => count)
+      ? counts.reduce((sum, count) => sum + count, 0)
+      : entry.strokes
+}
+
 const hskOrder = (hsk) => (hsk === 0 ? 99 : hsk)
 entries.sort((a, b) => {
   if (hskOrder(a.hsk) !== hskOrder(b.hsk)) return hskOrder(a.hsk) - hskOrder(b.hsk)
@@ -347,7 +407,7 @@ entries.sort((a, b) => {
 })
 
 const payload = {
-  version: 1,
+  version: 2,
   generatedAt: new Date().toISOString(),
   sources: {
     dictionaryEn: 'CC-CEDICT (CC BY-SA 4.0)',

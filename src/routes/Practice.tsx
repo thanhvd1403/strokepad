@@ -29,9 +29,17 @@ import {
 } from '../components/ui'
 import { loadEntries } from '../lib/data'
 import { findEntry, practiceCharacters } from '../lib/search'
+import { toScript } from '../lib/script'
 import { getReferenceStrokes, loadStrokeData, matchStroke } from '../lib/strokes'
 import { useSettings } from '../store/settings'
-import type { Entry, GridStyle, Point, PracticeMode, StrokeData } from '../types'
+import type {
+  Entry,
+  GridStyle,
+  Point,
+  PracticeMode,
+  Script,
+  StrokeData,
+} from '../types'
 
 function firstMeaning(entry: Entry | undefined, language: 'en' | 'vi') {
   if (!entry) return undefined
@@ -45,18 +53,10 @@ export function Practice() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const text = searchParams.get('text') ?? ''
-  const characters = useMemo(() => practiceCharacters(text), [text])
-  const requestedIndex = Number(searchParams.get('i') ?? '0')
-  const charIndex = Math.max(
-    0,
-    Math.min(
-      Number.isFinite(requestedIndex) ? requestedIndex : 0,
-      Math.max(characters.length - 1, 0),
-    ),
-  )
-  const currentChar = characters[charIndex]
 
   const language = useSettings((state) => state.language)
+  const script = useSettings((state) => state.script)
+  const setScript = useSettings((state) => state.setScript)
   const mode = useSettings((state) => state.mode)
   const setMode = useSettings((state) => state.setMode)
   const grid = useSettings((state) => state.grid)
@@ -90,6 +90,22 @@ export function Practice() {
   const [watchOpen, setWatchOpen] = useState(false)
   const [successFlashKey, setSuccessFlashKey] = useState(0)
   const acceptedRef = useRef<Point[][]>([])
+
+  const displayText = useMemo(() => toScript(text, script, entries), [entries, script, text])
+  const canonicalText = useMemo(
+    () => toScript(displayText, 'simplified', entries),
+    [displayText, entries],
+  )
+  const characters = useMemo(() => practiceCharacters(displayText), [displayText])
+  const requestedIndex = Number(searchParams.get('i') ?? '0')
+  const charIndex = Math.max(
+    0,
+    Math.min(
+      Number.isFinite(requestedIndex) ? requestedIndex : 0,
+      Math.max(characters.length - 1, 0),
+    ),
+  )
+  const currentChar = characters[charIndex]
 
   useEffect(() => {
     loadEntries()
@@ -144,7 +160,7 @@ export function Practice() {
   useEffect(() => {
     setCompleted(new Set())
     setMistakes(0)
-  }, [text])
+  }, [displayText])
 
   const goToIndex = useCallback(
     (next: number) => {
@@ -252,7 +268,8 @@ export function Practice() {
 
   const favoriteType =
     textEntry?.type === 'word' ? 'word' : characters.length > 1 ? 'sentence' : 'char'
-  const favoritePinyin = textEntry?.pinyin ?? pinyin(text, { toneType: 'symbol' })
+  const favoriteText = textEntry?.simp ?? canonicalText
+  const favoritePinyin = textEntry?.pinyin ?? pinyin(displayText, { toneType: 'symbol' })
 
   const isComplete =
     referenceStrokes.length > 0 && acceptedStrokes.length >= referenceStrokes.length
@@ -293,12 +310,12 @@ export function Practice() {
             })}
           </p>
           <h1 className="hanzi truncate text-xl font-bold leading-tight text-ink">
-            {text}
+            {displayText}
           </h1>
         </div>
         <FavoriteButton
           type={favoriteType}
-          text={text}
+          text={favoriteText}
           pinyin={favoritePinyin}
           meaning={textMeaning}
         />
@@ -433,9 +450,9 @@ export function Practice() {
             </p>
           </div>
         </div>
-        {text.length > 1 ? (
+        {displayText.length > 1 ? (
           <div className="mt-3 border-t border-line/60 pt-2.5">
-            <p className="hanzi text-base font-medium text-ink">{text}</p>
+            <p className="hanzi text-base font-medium text-ink">{displayText}</p>
             <p className="mt-0.5 text-sm text-accent">{favoritePinyin}</p>
             {textMeaning ? (
               <p className="mt-0.5 text-sm leading-relaxed text-muted">{textMeaning}</p>
@@ -485,6 +502,19 @@ export function Practice() {
             <p className="mt-2 text-sm leading-relaxed text-muted">
               {mode === 'guided' ? t('practice.guidedHint') : t('practice.plainHint')}
             </p>
+          </div>
+
+          <div>
+            <p className="mb-2 text-xs font-semibold text-muted">{t('settings.script')}</p>
+            <Segmented
+              className="w-full"
+              value={script}
+              onChange={(value: Script) => setScript(value)}
+              options={[
+                { value: 'simplified', label: t('settings.scriptSimplified') },
+                { value: 'traditional', label: t('settings.scriptTraditional') },
+              ]}
+            />
           </div>
 
           <div>

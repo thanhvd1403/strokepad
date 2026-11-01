@@ -1,10 +1,11 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import i18n from '../i18n'
-import type { GridStyle, Language, PracticeMode, Theme } from '../types'
+import type { GridStyle, Language, PracticeMode, Script, Theme } from '../types'
 
 interface SettingsState {
   language: Language
+  script: Script
   theme: Theme
   mode: PracticeMode
   grid: GridStyle
@@ -17,6 +18,7 @@ interface SettingsState {
   leniency: number
   hintAfter: number
   setLanguage: (language: Language) => void
+  setScript: (script: Script) => void
   setTheme: (theme: Theme) => void
   setMode: (mode: PracticeMode) => void
   setGrid: (grid: GridStyle) => void
@@ -39,6 +41,7 @@ export const useSettings = create<SettingsState>()(
   persist(
     (set) => ({
       language: browserLanguage,
+      script: 'simplified',
       theme: 'system',
       mode: 'guided',
       grid: 'rice',
@@ -55,6 +58,7 @@ export const useSettings = create<SettingsState>()(
         void i18n.changeLanguage(language)
         set({ language })
       },
+      setScript: (script) => set({ script }),
       setTheme: (theme) => set({ theme }),
       setMode: (mode) => set({ mode }),
       setGrid: (grid) => set({ grid }),
