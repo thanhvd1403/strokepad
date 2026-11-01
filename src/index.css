@@ -1,0 +1,228 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-soft: var(--bg-soft);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--border);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-sage: var(--sage);
+  --color-sage-soft: var(--sage-soft);
+  --color-butter: var(--butter);
+  --color-butter-soft: var(--butter-soft);
+  --color-lavender: var(--lavender);
+  --color-lavender-soft: var(--lavender-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-hanzi: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+}
+
+:root {
+  color-scheme: light;
+  --bg: #fbf6ec;
+  --bg-soft: #f5ecdc;
+  --surface: #fffdf8;
+  --surface-2: #f8f0e2;
+  --border: #e9dfce;
+  --text: #3d3a34;
+  --muted: #6f6759;
+  --accent: #b5624b;
+  --accent-soft: #f3d9cf;
+  --sage: #5f7f5a;
+  --sage-soft: #dde8d8;
+  --butter: #946f2d;
+  --butter-soft: #f7e9c8;
+  --lavender: #8266a0;
+  --lavender-soft: #ede5f2;
+  --danger: #b34f4f;
+  --danger-soft: #f6dada;
+  --success: #4f7a4a;
+  --success-soft: #ddebd9;
+  --shadow: 0 10px 30px -18px rgba(61, 58, 52, 0.35);
+}
+
+/*
+ * Catppuccin Mocha
+ * Base #1e1e2e · Mantle #181825 · Surface0 #313244 · Surface1 #45475a
+ * Text #cdd6f4 · Subtext0 #a6adc8 · Pink #f5c2e7 · Green #a6e3a1
+ * Yellow #f9e2af · Mauve #cba6f7 · Red #f38ba8
+ * The "soft" colors are the official accents blended 18% over Base.
+ */
+.dark {
+  color-scheme: dark;
+  --bg: #1e1e2e;
+  --bg-soft: #181825;
+  --surface: #313244;
+  --surface-2: #45475a;
+  --border: #45475a;
+  --text: #cdd6f4;
+  --muted: #a6adc8;
+  --accent: #f5c2e7;
+  --accent-soft: #453b4f;
+  --sage: #a6e3a1;
+  --sage-soft: #364142;
+  --butter: #f9e2af;
+  --butter-soft: #454145;
+  --lavender: #cba6f7;
+  --lavender-soft: #3d3652;
+  --danger: #f38ba8;
+  --danger-soft: #443144;
+  --success: #a6e3a1;
+  --success-soft: #364142;
+  --shadow: 0 12px 36px -20px rgba(0, 0, 0, 0.7);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.hanzi {
+  font-family: var(--font-hanzi);
+  font-feature-settings: "palt";
+}
+
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+}
+
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top), 0.75rem);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.touch-none {
+  touch-action: none;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-shake {
+  animation: shake 0.35s ease-in-out;
+}
+
+.animate-pop {
+  animation: pop 0.25s ease-out both;
+}
+
+.animate-fade-up {
+  animation: fade-up 0.3s ease-out both;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

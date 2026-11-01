@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="A calm, offline-first trainer for writing Chinese characters. Search by character or pinyin, practice stroke by stroke, and save your favorites."
+    />
+    <meta name="theme-color" content="#fbf6ec" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Hanzi" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Hanzi Practice — write Chinese characters</title>
+    <style>
+      html {
+        background: #fbf6ec;
+      }
+      html.dark {
+        background: #1e1e2e;
+      }
+      body {
+        margin: 0;
+      }
+      #boot {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: #fbf6ec;
+        color: #c97b63;
+        font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+        font-size: 3rem;
+      }
+      html.dark #boot {
+        background: #1e1e2e;
+        color: #f5c2e7;
+      }
+    </style>
+    <script>
+      try {
+        var raw = localStorage.getItem("hanzi-settings");
+        var theme = raw ? JSON.parse(raw).state.theme : "system";
+        var dark =
+          theme === "dark" ||
+          (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) document.documentElement.classList.add("dark");
+      } catch (error) {}
+    </script>
+  </head>
+  <body>
+    <div id="root">
+      <div id="boot">汉</div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
