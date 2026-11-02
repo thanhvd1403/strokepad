@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next'
 
 const en = {
   app: {
-    name: 'Hanzi Practice',
+    name: 'Strokepad',
     tagline: 'Write. Check. Remember.',
   },
   nav: {
@@ -50,6 +50,8 @@ const en = {
     speed: 'Speed',
     offlineReady: 'Offline ready',
     updateAvailable: 'Update available',
+    updateHint: 'Reload to get the latest version. Your favorites stay on this device.',
+    later: 'Later',
     reload: 'Reload',
   },
   search: {
@@ -146,6 +148,21 @@ const en = {
     grid: 'Default grid',
     hints: 'Show hints',
     sound: 'Sound & vibration',
+    offline: 'Offline',
+    offlineTitle: 'Download for offline',
+    offlineHint:
+      'Store all bundled stroke data so every character works without a connection. Keep the app open while it downloads.',
+    offlineCached: '{{count}} characters available offline',
+    offlineSize: 'About 15 MB. Already-downloaded characters are skipped.',
+    offlineDownload: 'Download all',
+    offlineProgress: '{{completed}} / {{total}}',
+    offlineCancel: 'Cancel',
+    offlineDone: 'All characters are available offline.',
+    offlineFailed: 'Download interrupted. Try again.',
+    offlineNeedsNetwork: 'Connect to the internet to download.',
+    offlineUnsupported: 'Offline storage is not available in this browser.',
+    offlineRemove: 'Remove offline data',
+    offlineRemoved: 'Offline stroke data removed.',
     data: 'Data',
     export: 'Export favorites',
     import: 'Import favorites',
@@ -203,7 +220,7 @@ const en = {
 
 const vi = {
   app: {
-    name: 'Luyện chữ Hán',
+    name: 'Strokepad',
     tagline: 'Viết. Kiểm tra. Ghi nhớ.',
   },
   nav: {
@@ -249,6 +266,9 @@ const vi = {
     speed: 'Tốc độ',
     offlineReady: 'Sẵn sàng ngoại tuyến',
     updateAvailable: 'Có bản cập nhật',
+    updateHint:
+      'Tải lại để nhận bản mới. Mục yêu thích vẫn được giữ trên thiết bị.',
+    later: 'Để sau',
     reload: 'Tải lại',
   },
   search: {
@@ -345,6 +365,21 @@ const vi = {
     grid: 'Ô ly mặc định',
     hints: 'Hiện gợi ý',
     sound: 'Âm thanh & rung',
+    offline: 'Ngoại tuyến',
+    offlineTitle: 'Tải để dùng ngoại tuyến',
+    offlineHint:
+      'Lưu toàn bộ dữ liệu nét để mọi chữ đều dùng được khi không có mạng. Giữ ứng dụng mở trong khi tải.',
+    offlineCached: '{{count}} chữ dùng được ngoại tuyến',
+    offlineSize: 'Khoảng 15 MB. Các chữ đã tải sẽ được bỏ qua.',
+    offlineDownload: 'Tải tất cả',
+    offlineProgress: '{{completed}} / {{total}}',
+    offlineCancel: 'Hủy',
+    offlineDone: 'Tất cả chữ đã sẵn sàng ngoại tuyến.',
+    offlineFailed: 'Tải bị gián đoạn. Thử lại.',
+    offlineNeedsNetwork: 'Hãy kết nối mạng để tải.',
+    offlineUnsupported: 'Trình duyệt này không hỗ trợ lưu ngoại tuyến.',
+    offlineRemove: 'Xóa dữ liệu ngoại tuyến',
+    offlineRemoved: 'Đã xóa dữ liệu nét ngoại tuyến.',
     data: 'Dữ liệu',
     export: 'Xuất yêu thích',
     import: 'Nhập yêu thích',
@@ -400,6 +435,7 @@ const vi = {
   },
 }
 
+// Historical key, kept so the saved language survives the Strokepad rename.
 const saved =
   typeof window !== 'undefined'
     ? window.localStorage.getItem('hanzi-language')

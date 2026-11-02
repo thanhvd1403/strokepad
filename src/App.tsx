@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Layout } from './components/Layout'
+import { PwaUpdate } from './components/PwaUpdate'
 import { Button } from './components/ui'
 import { useLanguageSync, useThemeSync } from './lib/hooks'
 import { Favorites } from './routes/Favorites'
@@ -39,6 +40,7 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <PwaUpdate />
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />

@@ -1,4 +1,4 @@
-# Hanzi Practice
+# Strokepad
 
 A calm, offline-first mobile web app for learning Chinese characters by writing
 them. Search by Chinese or pinyin, practice stroke by stroke, and keep the
@@ -33,8 +33,12 @@ screen and use it offline after the first visit.
   toggle.
 - **Light and dark themes** — cream pastel light theme, Catppuccin Mocha dark
   theme.
-- **Offline** — app shell, dictionary, and stroke data are cached; favorites are
-  stored locally in IndexedDB.
+- **Offline** — the app shell and dictionary are cached automatically, strokes
+  are cached as you practice, and **Settings → Offline** can download the full
+  bundled stroke pack. Favorites are stored locally in IndexedDB.
+- **Prompted updates** — the app checks for a new version on launch and when it
+  becomes visible again. A small banner offers **Reload** or **Later**, so an
+  update never interrupts a stroke.
 - **Export / import favorites** — JSON backup for moving between devices.
 - **Polyphonic readings** — tone-distinguished entries keep their own pinyin and
   definitions, for example 得 `dé` / `de` / `děi`, 过 `guò` / `guo`, and
@@ -93,8 +97,34 @@ npm run preview
 The build output is in `dist/`. Deploy it to any static host.
 
 - **Cloudflare Pages:** `public/_redirects` already contains `/* /index.html 200`.
+  `public/_headers` sets long-lived caching for hashed assets and data files.
+  The free plan has unlimited static requests and bandwidth.
 - **Netlify:** the same `public/_redirects` file works.
 - **Vercel:** add a rewrite of all routes to `/index.html`.
+
+## PWA and offline
+
+The app is installable from the browser and works offline through a service
+worker.
+
+- **App shell** — HTML, JS, CSS, icons, and the manifest are precached.
+- **Dictionary** — `entries.json` is fetched once with a version query and
+  cached with `CacheFirst`. Bump `DATA_VERSION` in `src/lib/data.ts` when the
+  dictionary data changes.
+- **Strokes** — stroke JSON is cached on demand with `CacheFirst`, so only
+  characters you open are downloaded.
+- **Full offline pack** — **Settings → Offline → Download all** fetches every
+  bundled stroke file (about 15 MB) into Cache Storage. Already-downloaded
+  characters are skipped, and the download can be cancelled.
+- **Updates** — a new service worker is detected on launch, on `pageshow`, and
+  when the app returns to the foreground while online. A non-blocking banner
+  offers **Reload** or **Later**. The old version keeps working offline until
+  you accept the update.
+
+The service worker cache names live in `src/lib/offline.ts` and
+`vite.config.ts`; keep them in sync. If you rebuild stroke data, bump the stroke
+cache version or purge the cache, because stroke URLs do not include a content
+hash.
 
 ## Data pipeline
 
@@ -167,8 +197,8 @@ stricter about shape and direction for long strokes.
 
 ```
 src/
-├─ components/      UI, practice canvas, grid, character strip, etc.
-├─ lib/             search, script conversion, stroke matching, IndexedDB, hooks
+├─ components/      UI, practice canvas, grid, offline pack, update banner
+├─ lib/             search, script conversion, stroke matching, offline cache, hooks
 ├─ routes/          Home, Practice, Favorites, Settings, Licenses
 ├─ store/           persisted settings (Zustand)
 ├─ i18n.ts          English + Vietnamese strings
@@ -181,7 +211,9 @@ scripts/
 public/
 ├─ data/            generated dictionary and strokes
 ├─ icons/           PWA icons
-└─ licenses/        Arphic PL and data license text
+├─ licenses/        Arphic PL and data license text
+├─ _headers         Cloudflare Pages cache headers
+└─ _redirects       Cloudflare/Netlify SPA fallback
 ```
 
 ## Design
@@ -216,6 +248,10 @@ There is no automated test suite yet. Manual checks cover:
   in storage.
 - Production PWA registers a service worker and caches the dictionary and
   strokes.
+- A new build shows the **Update available** banner; **Reload** activates the
+  new service worker without losing favorites or the offline pack.
+- **Settings → Offline → Download all** reaches 4,194 cached stroke files,
+  stores `entries.json?v=2`, and survives an app update.
 
 Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
 1.0 SEO**.
@@ -232,9 +268,12 @@ Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
 
 ## Notes
 
-- The dictionary is fetched once and cached by the service worker. On a slow
-  first visit the search screen shows a loading state. The file is about 3.7 MB
-  uncompressed; hosting it with gzip/brotli is recommended.
+- The dictionary is fetched once from `entries.json?v=<DATA_VERSION>` and then
+  served from cache. On a slow first visit the search screen shows a loading
+  state. The file is about 3.7 MB uncompressed; hosting it with gzip/brotli is
+  recommended. Bump `DATA_VERSION` when the dictionary changes.
+- The full offline pack is about 15 MB and 4,194 requests. It is optional and
+  only downloads characters that are not already cached.
 - The app has no backend and no accounts. Favorites live in IndexedDB on the
   device; use export/import to move them.
 - CVDICT is largely machine-translated from CC-CEDICT. Some Vietnamese

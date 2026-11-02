@@ -10,6 +10,7 @@ import {
 import { useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import { OfflinePack } from '../components/OfflinePack'
 import { Badge, Button, Card, Segmented, Toggle } from '../components/ui'
 import { clearLocalData, exportFavorites, importFavorites } from '../lib/db'
 import { useInstallPrompt } from '../lib/hooks'
@@ -170,6 +171,10 @@ export function Settings() {
           </Button>
         </Card>
       ) : null}
+
+      <Section title={t('settings.offline')}>
+        <OfflinePack />
+      </Section>
 
       <Section title={t('settings.data')}>
         <button

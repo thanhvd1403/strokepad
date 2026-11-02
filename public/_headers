@@ -1,0 +1,36 @@
+# Cloudflare Pages caching headers.
+# Vite fingerprints /assets/*, so those can be cached forever.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Workbox files are content-hashed too.
+/workbox-*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/icons/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/favicon.svg
+  Cache-Control: public, max-age=604800
+
+# The app fetches entries.json with a version query (?v=...).
+/data/entries.json
+  Cache-Control: public, max-age=31536000, immutable
+
+# Stroke files are stable for a given data version. If you rebuild the
+# stroke data, bump the cache version in vite.config.ts or purge the cache.
+/data/strokes/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/data/stroke-available.json
+  Cache-Control: public, max-age=3600
+
+# Always revalidate the app entry points so updates are picked up.
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=3600

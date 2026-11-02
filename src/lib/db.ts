@@ -5,6 +5,8 @@ class AppDatabase extends Dexie {
   favorites!: Table<Favorite, number>
 
   constructor() {
+    // Historical database name, kept so existing favorites survive the
+    // Strokepad rename.
     super('hanzi-practice')
     this.version(1).stores({
       favorites: '++id, type, text, [type+text], createdAt',
@@ -37,6 +39,7 @@ export async function removeFavorite(id: number) {
 export async function exportFavorites() {
   const favorites = await db.favorites.toArray()
   const payload = {
+    // Keep the historical app id so older exports still import cleanly.
     app: 'hanzi-practice',
     version: 1,
     exportedAt: new Date().toISOString(),

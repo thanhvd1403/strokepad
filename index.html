@@ -16,9 +16,9 @@
     <meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Hanzi" />
+    <meta name="apple-mobile-web-app-title" content="Strokepad" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <title>Hanzi Practice — write Chinese characters</title>
+    <title>Strokepad — write Chinese characters</title>
     <style>
       html {
         background: #fbf6ec;
@@ -46,6 +46,7 @@
     </style>
     <script>
       try {
+        // Historical key, kept so the saved theme survives the rename.
         var raw = localStorage.getItem("hanzi-settings");
         var theme = raw ? JSON.parse(raw).state.theme : "system";
         var dark =

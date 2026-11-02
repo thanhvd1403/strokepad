@@ -75,6 +75,7 @@ export function useElementSize<T extends HTMLElement>() {
   return [ref, size] as const
 }
 
+// Historical key, kept so recent searches survive the Strokepad rename.
 const RECENT_KEY = 'hanzi-recent-searches'
 
 function readRecent(): string[] {

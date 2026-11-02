@@ -72,6 +72,8 @@ export const useSettings = create<SettingsState>()(
       setHintAfter: (hintAfter) => set({ hintAfter }),
     }),
     {
+      // Historical key, kept so existing settings survive the Strokepad
+      // rename.
       name: 'hanzi-settings',
       storage: createJSONStorage(() => localStorage),
       version: 1,
