@@ -289,16 +289,6 @@ There is no automated test suite yet. Manual checks cover:
 Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
 1.0 SEO**.
 
-## Roadmap
-
-- Audio pronunciation.
-- Mastery tracking and spaced repetition.
-- Share Target API (share Chinese text from another app into the practice
-  screen).
-- Printable practice worksheets.
-- Optional Capacitor wrapper for app-store distribution.
-- Automated tests for the stroke matcher and data pipeline.
-
 ## Notes
 
 - The dictionary is fetched once from `entries.json?v=<DATA_VERSION>` and then
