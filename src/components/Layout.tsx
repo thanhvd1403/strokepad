@@ -1,4 +1,4 @@
-import { Search, Settings, Star } from 'lucide-react'
+import { Library, Search, Settings } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { clsx } from 'clsx'
@@ -13,7 +13,7 @@ function BottomNav() {
 
   const items = [
     { to: '/', label: t('nav.search'), icon: Search, end: true },
-    { to: '/favorites', label: t('nav.favorites'), icon: Star },
+    { to: '/collections', label: t('nav.collections'), icon: Library },
     { to: '/settings', label: t('nav.settings'), icon: Settings },
   ]
 

@@ -1,4 +1,4 @@
-import { BookOpen, Dices, History, Loader2, PenLine, Sparkles, Star } from 'lucide-react'
+import { BookOpen, Dices, History, Library, Loader2, PenLine, Sparkles } from 'lucide-react'
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -104,9 +104,9 @@ function HowItWorks() {
       body: t('practice.guidedHint'),
     },
     {
-      icon: Star,
-      title: t('favorites.title'),
-      body: t('favorites.emptyHint'),
+      icon: Library,
+      title: t('collections.title'),
+      body: t('collections.hint'),
     },
   ]
   return (

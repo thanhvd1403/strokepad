@@ -13,7 +13,11 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { OfflinePack } from '../components/OfflinePack'
 import { Badge, Button, Card, Segmented, Toggle } from '../components/ui'
-import { clearLocalData, exportFavorites, importFavorites } from '../lib/db'
+import {
+  clearLocalData,
+  exportCollections,
+  importCollections,
+} from '../lib/db'
 import { useInstallPrompt } from '../lib/hooks'
 import { useSettings } from '../store/settings'
 import type { GridStyle, Language, PracticeMode, Script, Theme } from '../types'
@@ -73,7 +77,7 @@ export function Settings() {
   const handleImport = async (file: File | undefined) => {
     if (!file) return
     try {
-      await importFavorites(file)
+      await importCollections(file)
       setMessage(t('settings.importDone'))
     } catch {
       setMessage(t('settings.importFailed'))
@@ -195,7 +199,7 @@ export function Settings() {
       <Section title={t('settings.data')}>
         <button
           type="button"
-          onClick={() => void exportFavorites()}
+          onClick={() => void exportCollections()}
           className="flex w-full items-center gap-3 py-3 text-left"
         >
           <Download className="h-4 w-4 text-muted" />

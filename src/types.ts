@@ -26,8 +26,15 @@ export interface EntryData {
 
 export type FavoriteType = 'char' | 'word' | 'sentence'
 
-export interface Favorite {
+export interface Collection {
   id?: number
+  name: string
+  createdAt: number
+}
+
+export interface CollectionItem {
+  id?: number
+  collectionId: number
   type: FavoriteType
   text: string
   pinyin?: string

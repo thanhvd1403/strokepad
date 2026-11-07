@@ -2,8 +2,12 @@ import { clsx } from 'clsx'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Star } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import type { MouseEvent } from 'react'
-import { getFavorite, toggleFavorite } from '../lib/db'
+import type { KeyboardEvent, MouseEvent } from 'react'
+import {
+  FAVORITE_COLLECTION_ID,
+  getCollectionItem,
+  toggleCollectionItem,
+} from '../lib/db'
 import type { FavoriteType } from '../types'
 
 export function FavoriteButton({
@@ -22,13 +26,25 @@ export function FavoriteButton({
   className?: string
 }) {
   const { t } = useTranslation()
-  const favorite = useLiveQuery(() => getFavorite(type, text), [type, text])
+  const favorite = useLiveQuery(
+    () => getCollectionItem(FAVORITE_COLLECTION_ID, type, text),
+    [type, text],
+  )
   const active = Boolean(favorite)
 
   const handleClick = async (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     event.stopPropagation()
-    await toggleFavorite({ type, text, pinyin, meaning })
+    await toggleCollectionItem(FAVORITE_COLLECTION_ID, {
+      type,
+      text,
+      pinyin,
+      meaning,
+    })
+  }
+
+  const stopKey = (event: KeyboardEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
   }
 
   return (
@@ -37,6 +53,7 @@ export function FavoriteButton({
       aria-label={active ? t('common.unfavorite') : t('common.favorite')}
       aria-pressed={active}
       onClick={handleClick}
+      onKeyDown={stopKey}
       className={clsx(
         'grid shrink-0 place-items-center rounded-full transition active:scale-90',
         active ? 'text-butter' : 'text-muted hover:text-butter',

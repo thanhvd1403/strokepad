@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { PwaUpdate } from './components/PwaUpdate'
 import { Button } from './components/ui'
 import { useLanguageSync, useThemeSync } from './lib/hooks'
-import { Favorites } from './routes/Favorites'
+import { CollectionDetail, Collections } from './routes/Collections'
 import { Home } from './routes/Home'
 import { Licenses } from './routes/Licenses'
 import { Practice } from './routes/Practice'
@@ -45,7 +45,12 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="practice" element={<Practice />} />
-          <Route path="favorites" element={<Favorites />} />
+          <Route path="collections" element={<Collections />} />
+          <Route path="collections/:id" element={<CollectionDetail />} />
+          <Route
+            path="favorites"
+            element={<Navigate to="/collections" replace />}
+          />
           <Route path="settings" element={<Settings />} />
           <Route path="licenses" element={<Licenses />} />
           <Route path="*" element={<NotFound />} />

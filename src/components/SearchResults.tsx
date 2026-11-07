@@ -7,6 +7,7 @@ import { isHan, type RankedEntry } from '../lib/search'
 import { toScript } from '../lib/script'
 import type { Entry, Script } from '../types'
 import { Badge, Button, Card, EmptyState } from './ui'
+import { CollectionButton } from './CollectionButton'
 import { EntryRow } from './EntryRow'
 import { FavoriteButton } from './FavoriteButton'
 import { PinyinSuggestions } from './PinyinSuggestions'
@@ -54,13 +55,22 @@ export function SearchResults({
               <Sparkles className="h-3 w-3" />
               {t('search.practiceYourText')}
             </Badge>
-            <FavoriteButton
-              type="sentence"
-              text={canonicalSentence ?? sentence}
-              pinyin={pinyin(sentence, { toneType: 'symbol' })}
-              meaning={sentence}
-              size="sm"
-            />
+            <div className="flex items-center">
+              <FavoriteButton
+                type="sentence"
+                text={canonicalSentence ?? sentence}
+                pinyin={pinyin(sentence, { toneType: 'symbol' })}
+                meaning={sentence}
+                size="sm"
+              />
+              <CollectionButton
+                type="sentence"
+                text={canonicalSentence ?? sentence}
+                pinyin={pinyin(sentence, { toneType: 'symbol' })}
+                meaning={sentence}
+                size="sm"
+              />
+            </div>
           </div>
           <p className="hanzi text-2xl font-medium leading-relaxed text-ink">
             {sentence}

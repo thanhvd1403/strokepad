@@ -1,6 +1,7 @@
 import { clsx } from 'clsx'
 import { X } from 'lucide-react'
 import { useEffect, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 export function Card({
   className,
@@ -221,8 +222,12 @@ export function Sheet({
 
   if (!open) return null
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+    >
       <button
         type="button"
         aria-label="Close"
@@ -243,7 +248,8 @@ export function Sheet({
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

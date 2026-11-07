@@ -32,7 +32,9 @@ screen and use it offline after the first visit.
   border when all strokes are correct. No popup.
 - **Stroke-order animation** — watch the character drawn stroke by stroke, on
   the same grid used for practice.
-- **Favorites** — save characters, words, and sentences.
+- **Collections** — Favorite is built in, and you can create your own collections
+  for characters, words, and sentences. The star saves to Favorite; the folder
+  button adds the same item to one or more custom collections.
 - **Simplified and traditional Chinese** — switch the whole app between
   simplified and traditional characters from the header or settings. Search
   works in either form, and traditional characters load their own stroke data.
@@ -42,11 +44,12 @@ screen and use it offline after the first visit.
   theme.
 - **Offline** — the app shell and dictionary are cached automatically, strokes
   are cached as you practice, and **Settings → Offline** can download the full
-  bundled stroke pack. Favorites are stored locally in IndexedDB.
+  bundled stroke pack. Collections are stored locally in IndexedDB.
 - **Prompted updates** — the app checks for a new version on launch and when it
   becomes visible again. A small banner offers **Reload** or **Later**, so an
   update never interrupts a stroke.
-- **Export / import favorites** — JSON backup for moving between devices.
+- **Export / import collections** — JSON backup for moving between devices.
+  Older favorites-only exports still import into the Favorite collection.
 - **Polyphonic readings** — tone-distinguished entries keep their own pinyin and
   definitions, for example 得 `dé` / `de` / `děi`, 过 `guò` / `guo`, and
   只 `zhǐ` / `zhī`.
@@ -77,7 +80,7 @@ escape hatch.
 - React 19 + TypeScript + Vite 8
 - Tailwind CSS 4
 - React Router 7
-- Zustand (settings) + Dexie (favorites in IndexedDB)
+- Zustand (settings) + Dexie (collections in IndexedDB)
 - [Hanzi Writer](https://github.com/chanind/hanzi-writer) for stroke-order animation
 - [pinyin-pro](https://github.com/zh-lx/pinyin-pro) for pinyin conversion and matching
 - [svg-path-bounds](https://github.com/hughsk/svg-path-bounds) for centring glyphs
@@ -215,7 +218,7 @@ stricter about shape and direction for long strokes.
 src/
 ├─ components/      UI, practice canvas, grid, offline pack, pinyin suggestions
 ├─ lib/             search, script conversion, stroke matching, pinyin suggestions, offline cache
-├─ routes/          Home, Practice, Favorites, Settings, Licenses
+├─ routes/          Home, Practice, Collections, Settings, Licenses
 ├─ store/           persisted settings (Zustand)
 ├─ i18n.ts          English + Vietnamese strings
 └─ types.ts
@@ -257,16 +260,21 @@ There is no automated test suite yet. Manual checks cover:
 - Plain mode accepts an off-centre stroke.
 - Blend-into-outline mode leaves no ink on the canvas and reveals the shadow.
 - Completion flash has no popup and fades the grid border and strokes.
-- Favorites add/remove and persist across reloads.
+- Collections: the star toggles Favorite, the folder button adds an item to
+  custom collections, and every collection persists across reloads.
+- Creating, renaming, and deleting a custom collection works; the Favorite
+  collection stays first and cannot be renamed or deleted.
+- An existing Favorites database upgrades to the Favorite collection without
+  losing saved items.
 - English/Vietnamese, simplified/traditional, and light/dark toggles.
 - Traditional search and practice: 说/說 both resolve, 說 draws with 14 strokes,
   and a sentence like 我的头发 converts to 我的頭髮.
-- Favorites saved in traditional mode reopen in traditional and stay canonical
+- Collections saved in traditional mode reopen in traditional and stay canonical
   in storage.
 - Production PWA registers a service worker and caches the dictionary and
   strokes.
 - A new build shows the **Update available** banner; **Reload** activates the
-  new service worker without losing favorites or the offline pack.
+  new service worker without losing collections or the offline pack.
 - **Settings → Offline → Download all** reaches 4,194 cached stroke files,
   stores `entries.json?v=2`, and survives an app update.
 - A Chinese sentence with punctuation shows the **Practice your own text** card;
@@ -305,7 +313,7 @@ Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
   dictionary so a rare phrase does not outrank a more common reading.
 - Settings shows the build date and short commit (for example
   `2026-11-07 (abcdef01)`), injected by `vite.config.ts`.
-- The app has no backend and no accounts. Favorites live in IndexedDB on the
+- The app has no backend and no accounts. Collections live in IndexedDB on the
   device; use export/import to move them.
 - CVDICT is largely machine-translated from CC-CEDICT. Some Vietnamese
   definitions may be imperfect.

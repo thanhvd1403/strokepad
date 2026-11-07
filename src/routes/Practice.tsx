@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CharacterStrip } from '../components/CharacterStrip'
 import { FavoriteButton } from '../components/FavoriteButton'
+import { CollectionButton } from '../components/CollectionButton'
 import { PracticeCanvas } from '../components/PracticeCanvas'
 import { StrokeOrderPlayer } from '../components/StrokeOrderPlayer'
 import {
@@ -314,6 +315,12 @@ export function Practice() {
           </h1>
         </div>
         <FavoriteButton
+          type={favoriteType}
+          text={favoriteText}
+          pinyin={favoritePinyin}
+          meaning={textMeaning}
+        />
+        <CollectionButton
           type={favoriteType}
           text={favoriteText}
           pinyin={favoritePinyin}

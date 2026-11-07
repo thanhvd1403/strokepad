@@ -4,6 +4,7 @@ import { entryStrokes, entryText } from '../lib/script'
 import { useSettings } from '../store/settings'
 import type { Entry } from '../types'
 import { Badge } from './ui'
+import { CollectionButton } from './CollectionButton'
 import { FavoriteButton } from './FavoriteButton'
 
 function hskTone(hsk: number) {
@@ -74,6 +75,13 @@ export function EntryRow({
         </span>
       </span>
       <FavoriteButton
+        type={entry.type}
+        text={entry.simp}
+        pinyin={entry.pinyin}
+        meaning={meaning}
+        size="sm"
+      />
+      <CollectionButton
         type={entry.type}
         text={entry.simp}
         pinyin={entry.pinyin}
