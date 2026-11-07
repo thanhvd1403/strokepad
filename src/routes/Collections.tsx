@@ -21,6 +21,7 @@ import {
   EmptyState,
   IconButton,
   Segmented,
+  Sheet,
 } from '../components/ui'
 import { loadEntries } from '../lib/data'
 import {
@@ -240,6 +241,7 @@ export function CollectionDetail() {
   const [entries, setEntries] = useState<Entry[]>([])
   const [tab, setTab] = useState<Tab>('all')
   const [renaming, setRenaming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const collection = useLiveQuery(async (): Promise<Collection | null> => {
     if (!Number.isFinite(collectionId)) return null
@@ -313,8 +315,8 @@ export function CollectionDetail() {
     : '…'
 
   const handleDelete = async () => {
-    if (!window.confirm(t('collections.deleteConfirm'))) return
     await deleteCollection(collectionId)
+    setDeleting(false)
     navigate('/collections', { replace: true })
   }
 
@@ -348,7 +350,7 @@ export function CollectionDetail() {
             </IconButton>
             <IconButton
               label={t('collections.delete')}
-              onClick={() => void handleDelete()}
+              onClick={() => setDeleting(true)}
               className="hover:text-danger"
             >
               <Trash2 className="h-5 w-5" />
@@ -425,6 +427,48 @@ export function CollectionDetail() {
             setRenaming(false)
           }}
         />
+      ) : null}
+
+      {deleting && collection ? (
+        <Sheet
+          open
+          onClose={() => setDeleting(false)}
+          title={t('collections.delete')}
+        >
+          <div className="space-y-4">
+            <div className="flex flex-col items-center px-2 py-2 text-center">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-danger-soft text-danger">
+                <Trash2 className="h-6 w-6" />
+              </div>
+              <p className="mt-3 text-base font-semibold text-ink">
+                {t('collections.deleteTitle')}
+              </p>
+              <p className="mt-1 max-w-sm text-sm leading-relaxed text-muted">
+                {t('collections.deleteNamed', { name })}
+              </p>
+              <p className="mt-2 text-xs font-semibold text-danger">
+                {t('collections.deleteItems', { count: items?.length ?? 0 })}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setDeleting(false)}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button
+                variant="danger"
+                className="flex-1"
+                onClick={() => void handleDelete()}
+              >
+                <Trash2 className="h-4 w-4" />
+                {t('collections.deleteAction')}
+              </Button>
+            </div>
+          </div>
+        </Sheet>
       ) : null}
     </div>
   )

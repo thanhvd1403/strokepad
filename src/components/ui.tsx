@@ -31,7 +31,8 @@ const buttonVariants: Record<ButtonVariant, string> = {
   soft: 'bg-accent-soft text-ink hover:brightness-[1.02] active:scale-[0.98]',
   ghost: 'bg-transparent text-muted hover:bg-surface-2 hover:text-ink',
   outline: 'border border-line bg-transparent text-ink hover:bg-surface-2',
-  danger: 'bg-danger-soft text-danger hover:brightness-[1.02] active:scale-[0.98]',
+  danger:
+    'border border-danger/25 bg-danger-soft text-danger hover:brightness-[1.03] active:scale-[0.98]',
 }
 
 const buttonSizes: Record<ButtonSize, string> = {
