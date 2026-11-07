@@ -141,10 +141,7 @@ export function Collections() {
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">
             {t('nav.collections')}
           </p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">
-            {t('collections.title')}
-          </h1>
-          <p className="mt-0.5 text-xs text-muted">
+          <p className="mt-1 text-xs text-muted">
             {t('collections.count', { count: collections?.length ?? 0 })}
           </p>
         </div>

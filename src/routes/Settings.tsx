@@ -90,9 +90,6 @@ export function Settings() {
         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">
           {t('nav.settings')}
         </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">
-          {t('settings.title')}
-        </h1>
       </header>
 
       {message ? (
