@@ -1,4 +1,4 @@
-import { BookOpen, Dices, History, PenLine, Sparkles, Star } from 'lucide-react'
+import { BookOpen, Dices, History, Loader2, PenLine, Sparkles, Star } from 'lucide-react'
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -8,13 +8,15 @@ import { SearchResults } from '../components/SearchResults'
 import { Badge, Button, Card, EmptyState } from '../components/ui'
 import { loadEntries } from '../lib/data'
 import { useRecentSearches } from '../lib/hooks'
+import { isPinyinQuery, suggestPinyin } from '../lib/pinyin-suggest'
 import {
+  containsHan,
   randomStarter,
   searchEntries,
   starterEntries,
   type RankedEntry,
 } from '../lib/search'
-import { entryText } from '../lib/script'
+import { entryText, toScript } from '../lib/script'
 import { useSettings } from '../store/settings'
 import type { Entry, EntryData, Script } from '../types'
 
@@ -139,6 +141,7 @@ export function Home() {
   )
   const [data, setData] = useState<EntryData | null>(null)
   const [error, setError] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const { recent, add, clear } = useRecentSearches()
   const deferredQuery = useDeferredValue(query)
 
@@ -189,7 +192,43 @@ export function Home() {
   }
 
   const handleSubmit = () => {
-    if (query.trim()) add(query.trim())
+    const trimmed = query.trim()
+    if (!trimmed || submitting) return
+
+    if (containsHan(trimmed)) {
+      practiceSentence(toScript(trimmed, script, data?.entries ?? []))
+      return
+    }
+
+    if (!isPinyinQuery(trimmed)) {
+      add(trimmed)
+      return
+    }
+
+    // Characters and words take priority. Only fall back to a generated
+    // sentence when the dictionary has no match.
+    const currentResults = data
+      ? searchEntries(data.entries, trimmed, hskLevels)
+      : []
+    if (currentResults.length > 0) {
+      practiceEntry(currentResults[0])
+      return
+    }
+
+    add(trimmed)
+    setSubmitting(true)
+    void suggestPinyin(trimmed, data?.entries)
+      .then((list) => {
+        const best = list[0]
+        if (best) {
+          practiceText(toScript(best, script, data?.entries ?? []))
+        }
+      })
+      .catch(() => {
+        // Keep the dictionary results visible; the suggestion card shows the
+        // error and a retry action.
+      })
+      .finally(() => setSubmitting(false))
   }
 
   return (
@@ -202,6 +241,12 @@ export function Home() {
           <p className="mt-1 text-sm leading-relaxed text-muted">{t('search.startHint')}</p>
         </div>
         <SearchBar value={query} onChange={setQuery} onSubmit={handleSubmit} />
+        {submitting ? (
+          <p className="flex items-center gap-1.5 px-1 text-xs text-muted">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            {t('search.pinyinFinding')}
+          </p>
+        ) : null}
         <HskFilter selected={hskLevels} onChange={setHskLevels} />
       </section>
 

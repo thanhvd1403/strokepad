@@ -10,6 +10,12 @@ screen and use it offline after the first visit.
 ## Features
 
 - **Search by Chinese or pinyin** — `nihao`, `nh`, `ni hao`, or `你好`.
+- **Practice your own text** — type any Chinese sentence, punctuation and
+  spaces included, and practise every character in order.
+- **Pinyin sentence fallback** — as you type pinyin, matching characters and
+  words appear immediately. If nothing matches, sentence suggestions appear at
+  the bottom for you to choose. Suggestions are generated from the dictionary
+  already on the device, so there is no extra sentence pack to download.
 - **HSK 3.0 aware ranking** — exact matches first, then HSK level and general
   word frequency. Filter results to HSK 1–9.
 - **Character strip** — a word or sentence is split into characters; tap any
@@ -197,8 +203,8 @@ stricter about shape and direction for long strokes.
 
 ```
 src/
-├─ components/      UI, practice canvas, grid, offline pack, update banner
-├─ lib/             search, script conversion, stroke matching, offline cache, hooks
+├─ components/      UI, practice canvas, grid, offline pack, pinyin suggestions
+├─ lib/             search, script conversion, stroke matching, pinyin suggestions, offline cache
 ├─ routes/          Home, Practice, Favorites, Settings, Licenses
 ├─ store/           persisted settings (Zustand)
 ├─ i18n.ts          English + Vietnamese strings
@@ -252,6 +258,14 @@ There is no automated test suite yet. Manual checks cover:
   new service worker without losing favorites or the offline pack.
 - **Settings → Offline → Download all** reaches 4,194 cached stroke files,
   stores `entries.json?v=2`, and survives an app update.
+- A Chinese sentence with punctuation shows the **Practice your own text** card;
+  the character count ignores punctuation, and Enter starts practice.
+- A pinyin query shows matching characters and words first. If there are no
+  dictionary matches, up to five sentence suggestions appear at the bottom;
+  tapping one or pressing Enter practises the best sentence. Suggestions are
+  generated from the bundled dictionary and do not need a separate download.
+- A pinyin query with a dictionary match (for example `nihao` → 你好) starts
+  practice on Enter with that character or word, not a generated sentence.
 
 Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
 1.0 SEO**.
@@ -274,6 +288,9 @@ Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
   recommended. Bump `DATA_VERSION` when the dictionary changes.
 - The full offline pack is about 15 MB and 4,194 requests. It is optional and
   only downloads characters that are not already cached.
+- Pinyin sentence suggestions reuse the bundled dictionary. No extra sentence
+  pack is downloaded, and individual sentences are not stored in the cache; the
+  character/word index is built in memory from the dictionary already loaded.
 - The app has no backend and no accounts. Favorites live in IndexedDB on the
   device; use export/import to move them.
 - CVDICT is largely machine-translated from CC-CEDICT. Some Vietnamese
