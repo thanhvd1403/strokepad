@@ -1,5 +1,7 @@
 import Dexie, { type Table } from 'dexie'
 import type { Favorite, FavoriteType } from '../types'
+import { PINYIN_CACHE } from './offline'
+import { resetPinyinSuggestions } from './pinyin-suggest'
 
 class AppDatabase extends Dexie {
   favorites!: Table<Favorite, number>
@@ -88,4 +90,8 @@ export async function clearLocalData() {
   localStorage.removeItem('hanzi-settings')
   localStorage.removeItem('hanzi-language')
   localStorage.removeItem('hanzi-recent-searches')
+  if (typeof caches !== 'undefined') {
+    await caches.delete(PINYIN_CACHE)
+  }
+  resetPinyinSuggestions()
 }

@@ -78,7 +78,7 @@ const en = {
     pinyinError:
       'Could not load pinyin suggestions. Check your connection and try again.',
     pinyinEmpty: 'No sentence suggestions for this pinyin.',
-    pinyinHint: 'Suggestions are built from the dictionary already on this device.',
+    pinyinHint: 'Suggestions download about 3 MB once, then work offline.',
     chars: 'Characters',
     words: 'Words',
     loading: 'Loading dictionary…',
@@ -213,9 +213,12 @@ const en = {
     frequency: 'Word frequency',
     frequencyBody:
       'FrequencyWords zh_cn_50k by Hermit Dave, derived from OpenSubtitles 2018. Licensed CC BY-SA 4.0.',
+    pinyin: 'Pinyin sentence suggestions',
+    pinyinBody:
+      'Pinyin-to-Hanzi suggestions use pinyin-input-method-engine, a TypeScript port of Pinyin2Hanzi. The DAG model and dictionaries are MIT-licensed and loaded on demand.',
     code: 'Open-source code',
     codeBody:
-      'Hanzi Writer (MIT), pinyin-pro (MIT), React (MIT), Vite (MIT), Tailwind CSS (MIT), Dexie (Apache 2.0), i18next (MIT).',
+      'Hanzi Writer (MIT), pinyin-pro (MIT), pinyin-input-method-engine (MIT), React (MIT), Vite (MIT), Tailwind CSS (MIT), Dexie (Apache 2.0), i18next (MIT).',
     arphic: 'Arphic Public License',
     viewLicense: 'View license',
     dataLicense: 'Data license',
@@ -309,7 +312,7 @@ const vi = {
     pinyinError:
       'Không tải được gợi ý pinyin. Kiểm tra kết nối và thử lại.',
     pinyinEmpty: 'Không có gợi ý câu cho pinyin này.',
-    pinyinHint: 'Gợi ý được tạo từ từ điển đã có trên thiết bị.',
+    pinyinHint: 'Gợi ý tải khoảng 3 MB một lần, sau đó dùng được ngoại tuyến.',
     chars: 'Chữ',
     words: 'Từ',
     loading: 'Đang tải từ điển…',
@@ -444,9 +447,12 @@ const vi = {
     frequency: 'Tần suất từ',
     frequencyBody:
       'FrequencyWords zh_cn_50k của Hermit Dave, dựa trên OpenSubtitles 2018. Giấy phép CC BY-SA 4.0.',
+    pinyin: 'Gợi ý câu từ pinyin',
+    pinyinBody:
+      'Gợi ý pinyin sang chữ Hán dùng pinyin-input-method-engine, bản TypeScript của Pinyin2Hanzi. Mô hình DAG và từ điển theo giấy phép MIT, được tải khi cần.',
     code: 'Mã nguồn mở',
     codeBody:
-      'Hanzi Writer (MIT), pinyin-pro (MIT), React (MIT), Vite (MIT), Tailwind CSS (MIT), Dexie (Apache 2.0), i18next (MIT).',
+      'Hanzi Writer (MIT), pinyin-pro (MIT), pinyin-input-method-engine (MIT), React (MIT), Vite (MIT), Tailwind CSS (MIT), Dexie (Apache 2.0), i18next (MIT).',
     arphic: 'Giấy phép Arphic',
     viewLicense: 'Xem giấy phép',
     dataLicense: 'Giấy phép dữ liệu',

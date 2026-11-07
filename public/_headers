@@ -25,6 +25,10 @@
 /data/stroke-available.json
   Cache-Control: public, max-age=3600
 
+# Pinyin sentence-suggestion dictionaries are versioned by the app.
+/data/pinyin/*
+  Cache-Control: public, max-age=31536000, immutable
+
 # Always revalidate the app entry points so updates are picked up.
 /index.html
   Cache-Control: public, max-age=0, must-revalidate

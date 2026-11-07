@@ -227,7 +227,9 @@ export function Settings() {
         <div className="flex items-center gap-3 py-3">
           <Info className="h-4 w-4 text-muted" />
           <span className="flex-1 text-sm font-medium text-ink">{t('settings.version')}</span>
-          <Badge tone="neutral">v0.1.0</Badge>
+          <Badge tone="neutral">
+            <span style={{ textTransform: 'none' }}>{__BUILD_STAMP__}</span>
+          </Badge>
         </div>
       </Section>
 

@@ -119,6 +119,23 @@ export function Licenses() {
       />
 
       <SourceCard
+        title={t('licenses.pinyin')}
+        license="MIT"
+        body={t('licenses.pinyinBody')}
+        links={[
+          {
+            label: 'pinyin-input-method-engine',
+            href: 'https://gitee.com/tiger-with-wings-org/pinyin-input-method-engine',
+          },
+          {
+            label: 'Pinyin2Hanzi',
+            href: 'https://github.com/letiantian/Pinyin2Hanzi',
+          },
+          { label: t('licenses.viewLicense'), href: '/licenses/PINYIN-ENGINE.txt' },
+        ]}
+      />
+
+      <SourceCard
         title={t('licenses.code')}
         license="MIT"
         body={t('licenses.codeBody')}

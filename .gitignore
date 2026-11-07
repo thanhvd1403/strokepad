@@ -18,6 +18,10 @@ data/sources/*
 
 # Generated app data is committed under public/data so deployments work
 # without re-downloading the source dictionaries.
+#
+# The pinyin suggestion dictionaries are copied from the npm package by
+# scripts/copy-pinyin-dict.mjs during dev/build.
+public/data/pinyin/
 
 # Editor directories and files
 .vscode/*

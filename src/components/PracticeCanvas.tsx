@@ -30,6 +30,7 @@ function Outline({
   isDark,
   acceptedCount,
   blend,
+  hideShadow,
   flashIntensity,
 }: {
   data: StrokeData
@@ -39,6 +40,7 @@ function Outline({
   isDark: boolean
   acceptedCount: number
   blend: boolean
+  hideShadow: boolean
   flashIntensity: number
 }) {
   if (size <= 0) return null
@@ -49,14 +51,20 @@ function Outline({
   return (
     <>
       <g transform={svgTransform}>
-        {data.strokes.map((path, index) => (
-          <path
-            key={index}
-            d={path}
-            fill="var(--text)"
-            opacity={blend && index < acceptedCount ? acceptedOpacity : baseOpacity}
-          />
-        ))}
+        {data.strokes.map((path, index) => {
+          const accepted = blend && index < acceptedCount
+          // In Plain mode the faint guide shadow is hidden, but accepted
+          // strokes still fill the character.
+          if (!accepted && hideShadow) return null
+          return (
+            <path
+              key={index}
+              d={path}
+              fill="var(--text)"
+              opacity={accepted ? acceptedOpacity : baseOpacity}
+            />
+          )
+        })}
       </g>
       {flashIntensity > 0 ? (
         <g transform={svgTransform} fill="var(--success)">
@@ -415,6 +423,7 @@ export function PracticeCanvas({
             isDark={isDark}
             acceptedCount={acceptedStrokes.length}
             blend={blendOutline}
+            hideShadow={blendOutline && mode === 'plain'}
             flashIntensity={flashIntensity}
           />
         ) : null}

@@ -50,8 +50,19 @@ Source: FrequencyWords zh_cn_50k by Hermit Dave
 2018.
 License: Creative Commons Attribution-ShareAlike 4.0 International.
 
+Pinyin sentence suggestions
+---------------------------
+Source: pinyin-input-method-engine
+(https://gitee.com/tiger-with-wings-org/pinyin-input-method-engine), a
+TypeScript port of Pinyin2Hanzi (https://github.com/letiantian/Pinyin2Hanzi).
+License: MIT.
+The DAG dictionaries are copied to public/data/pinyin by
+scripts/copy-pinyin-dict.mjs and served under the same MIT license. The full
+license text is in public/licenses/PINYIN-ENGINE.txt.
+
 Libraries
 ---------
-Hanzi Writer (MIT), pinyin-pro (MIT), React (MIT), Vite (MIT), Tailwind CSS
-(MIT), Dexie (Apache 2.0), i18next (MIT), svg-path-bounds (MIT).
+Hanzi Writer (MIT), pinyin-pro (MIT), pinyin-input-method-engine (MIT), React
+(MIT), Vite (MIT), Tailwind CSS (MIT), Dexie (Apache 2.0), i18next (MIT),
+svg-path-bounds (MIT).
 See package.json and the in-app licenses page for details.

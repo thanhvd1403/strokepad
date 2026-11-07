@@ -13,9 +13,9 @@ screen and use it offline after the first visit.
 - **Practice your own text** — type any Chinese sentence, punctuation and
   spaces included, and practise every character in order.
 - **Pinyin sentence fallback** — as you type pinyin, matching characters and
-  words appear immediately. If nothing matches, sentence suggestions appear at
-  the bottom for you to choose. Suggestions are generated from the dictionary
-  already on the device, so there is no extra sentence pack to download.
+  words appear immediately. If nothing matches, sentence suggestions from the
+  MIT pinyin-input-method-engine DAG model appear at the bottom for you to
+  choose. The model is cached for offline use after the first suggestion.
 - **HSK 3.0 aware ranking** — exact matches first, then HSK level and general
   word frequency. Filter results to HSK 1–9.
 - **Character strip** — a word or sentence is split into characters; tap any
@@ -26,7 +26,8 @@ screen and use it offline after the first visit.
   writing still counts.
 - **Blend into outline** — an optional mode where a correct stroke replaces
   your ink with the character's shadow outline, so the character builds up line
-  by line in stroke order.
+  by line in stroke order. In Plain mode the guide shadow is hidden, so only
+  accepted strokes appear.
 - **Completion flash** — one smooth green fade across the character and the grid
   border when all strokes are correct. No popup.
 - **Stroke-order animation** — watch the character drawn stroke by stroke, on
@@ -119,6 +120,10 @@ worker.
   dictionary data changes.
 - **Strokes** — stroke JSON is cached on demand with `CacheFirst`, so only
   characters you open are downloaded.
+- **Pinyin suggestions** — the pinyin-input-method-engine DAG dictionaries
+  (about 21 MB raw, 2.5 MB Brotli) are fetched after the app shell is idle and
+  cached with `CacheFirst`. Bump `PINYIN_DATA_VERSION` in
+  `src/lib/pinyin-suggest.ts` when the engine data changes.
 - **Full offline pack** — **Settings → Offline → Download all** fetches every
   bundled stroke file (about 15 MB) into Cache Storage. Already-downloaded
   characters are skipped, and the download can be cancelled.
@@ -170,6 +175,11 @@ Current output:
 | Vietnamese definitions | [CVDICT](https://github.com/ph0ngp/CVDICT) | CC BY-SA 4.0 |
 | HSK 3.0 words and characters | [elkmovie/hsk30](https://github.com/elkmovie/hsk30), [ivankra/hsk30](https://github.com/ivankra/hsk30) | MIT |
 | Word frequency | [FrequencyWords zh_cn_50k](https://github.com/hermitdave/FrequencyWords) | CC BY-SA 4.0 |
+| Pinyin sentence suggestions | [pinyin-input-method-engine](https://gitee.com/tiger-with-wings-org/pinyin-input-method-engine), based on [Pinyin2Hanzi](https://github.com/letiantian/Pinyin2Hanzi) | MIT |
+
+The DAG dictionaries from pinyin-input-method-engine are copied to
+`public/data/pinyin/` by `scripts/copy-pinyin-dict.mjs` during dev and build.
+That directory is gitignored; the source package is installed from npm.
 
 The processed dictionary (`public/data/entries.json`) is a derivative of
 CC-CEDICT and CVDICT and is distributed under CC BY-SA 4.0. The repacked stroke
@@ -212,12 +222,13 @@ src/
 scripts/
 ├─ fetch-data.mjs   download raw dictionaries
 ├─ build-data.mjs   build entries.json + stroke JSON
+├─ copy-pinyin-dict.mjs  copy the pinyin engine DAG dictionaries
 ├─ make-icons.mjs   generate PWA icons
 └─ search-test.ts   inspect search ranking
 public/
-├─ data/            generated dictionary and strokes
+├─ data/            generated dictionary, pinyin model, and strokes
 ├─ icons/           PWA icons
-├─ licenses/        Arphic PL and data license text
+├─ licenses/        Arphic PL, data, and pinyin engine license text
 ├─ _headers         Cloudflare Pages cache headers
 └─ _redirects       Cloudflare/Netlify SPA fallback
 ```
@@ -261,9 +272,8 @@ There is no automated test suite yet. Manual checks cover:
 - A Chinese sentence with punctuation shows the **Practice your own text** card;
   the character count ignores punctuation, and Enter starts practice.
 - A pinyin query shows matching characters and words first. If there are no
-  dictionary matches, up to five sentence suggestions appear at the bottom;
-  tapping one or pressing Enter practises the best sentence. Suggestions are
-  generated from the bundled dictionary and do not need a separate download.
+  dictionary matches, up to five sentence suggestions from the DAG model appear
+  at the bottom; tapping one or pressing Enter practises the best sentence.
 - A pinyin query with a dictionary match (for example `nihao` → 你好) starts
   practice on Enter with that character or word, not a generated sentence.
 
@@ -288,9 +298,13 @@ Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
   recommended. Bump `DATA_VERSION` when the dictionary changes.
 - The full offline pack is about 15 MB and 4,194 requests. It is optional and
   only downloads characters that are not already cached.
-- Pinyin sentence suggestions reuse the bundled dictionary. No extra sentence
-  pack is downloaded, and individual sentences are not stored in the cache; the
-  character/word index is built in memory from the dictionary already loaded.
+- Pinyin sentence suggestions use the MIT pinyin-input-method-engine. Its DAG
+  dictionaries are copied to `public/data/pinyin` during dev/build, loaded on
+  demand (about 2.5 MB Brotli), and cached; individual sentences are not stored.
+  The engine's top paths get a light character-frequency tie-break from the app
+  dictionary so a rare phrase does not outrank a more common reading.
+- Settings shows the build date and short commit (for example
+  `2026-11-07 (abcdef01)`), injected by `vite.config.ts`.
 - The app has no backend and no accounts. Favorites live in IndexedDB on the
   device; use export/import to move them.
 - CVDICT is largely machine-translated from CC-CEDICT. Some Vietnamese

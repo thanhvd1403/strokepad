@@ -2,6 +2,7 @@
 export const DICTIONARY_CACHE = 'hanzi-dictionary'
 export const STROKE_CACHE = 'hanzi-strokes'
 export const STROKE_INDEX_CACHE = 'hanzi-stroke-index'
+export const PINYIN_CACHE = 'hanzi-pinyin-dict'
 export const STROKE_INDEX_URL = '/data/stroke-available.json'
 
 export function strokeDataUrl(char: string) {
