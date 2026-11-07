@@ -412,7 +412,7 @@ const payload = {
   sources: {
     dictionaryEn: 'CC-CEDICT (CC BY-SA 4.0)',
     dictionaryVi: 'CVDICT (CC BY-SA 4.0)',
-    hsk: 'HSK 3.0 (2021), via elkmovie/hsk30 + ivankra/hsk30 (MIT)',
+    hsk: 'HSK 3.0 (2021), via ivankra/hsk30, derived from elkmovie/hsk30 and shawkynasr/HSK-official-Query-System (MIT)',
     frequency: 'FrequencyWords zh_cn_50k (CC BY-SA 4.0, OpenSubtitles 2018)',
     strokes: 'Make Me a Hanzi / hanzi-writer-data (Arphic Public License)',
   },

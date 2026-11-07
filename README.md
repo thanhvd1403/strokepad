@@ -176,13 +176,14 @@ Current output:
 | Stroke outlines and medians | [Make Me a Hanzi](https://github.com/skishore/makemeahanzi) via [hanzi-writer-data](https://github.com/chanind/hanzi-writer-data) | Arphic Public License |
 | English definitions | [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cedict) | CC BY-SA 4.0 |
 | Vietnamese definitions | [CVDICT](https://github.com/ph0ngp/CVDICT) | CC BY-SA 4.0 |
-| HSK 3.0 words and characters | [elkmovie/hsk30](https://github.com/elkmovie/hsk30), [ivankra/hsk30](https://github.com/ivankra/hsk30) | MIT |
+| HSK 3.0 words and characters | [elkmovie/hsk30](https://github.com/elkmovie/hsk30), [ivankra/hsk30](https://github.com/ivankra/hsk30), [shawkynasr/HSK-official-Query-System](https://github.com/shawkynasr/HSK-official-Query-System) | MIT |
 | Word frequency | [FrequencyWords zh_cn_50k](https://github.com/hermitdave/FrequencyWords) | CC BY-SA 4.0 |
-| Pinyin sentence suggestions | [pinyin-input-method-engine](https://gitee.com/tiger-with-wings-org/pinyin-input-method-engine), based on [Pinyin2Hanzi](https://github.com/letiantian/Pinyin2Hanzi) | MIT |
+| Pinyin sentence suggestions | [pinyin-input-method-engine](https://gitee.com/tiger-with-wings-org/pinyin-input-method-engine), using [Pinyin2Hanzi](https://github.com/letiantian/Pinyin2Hanzi) DAG data | MIT |
 
-The DAG dictionaries from pinyin-input-method-engine are copied to
-`public/data/pinyin/` by `scripts/copy-pinyin-dict.mjs` during dev and build.
-That directory is gitignored; the source package is installed from npm.
+The DAG dictionaries shipped with pinyin-input-method-engine are the verbatim
+Pinyin2Hanzi data. They are copied to `public/data/pinyin/` by
+`scripts/copy-pinyin-dict.mjs` during dev and build. That directory is
+gitignored; the source package is installed from npm.
 
 The processed dictionary (`public/data/entries.json`) is a derivative of
 CC-CEDICT and CVDICT and is distributed under CC BY-SA 4.0. The repacked stroke

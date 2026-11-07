@@ -237,17 +237,16 @@ const en = {
       'CVDICT by Phong Phan, translated from CC-CEDICT. Licensed under CC BY-SA 4.0. Some entries are machine-translated and may be imperfect.',
     hsk: 'HSK 3.0 lists',
     hskBody:
-      'HSK 3.0 (2021) word and character lists, via elkmovie/hsk30 and ivankra/hsk30. Repository data licensed MIT; the underlying standard is published by the Chinese Ministry of Education.',
+      'HSK 3.0 (2021) word and character lists, via ivankra/hsk30, which builds on elkmovie/hsk30 and shawkynasr/HSK-official-Query-System. Repository data licensed MIT; the underlying standard is published by the Chinese Ministry of Education.',
     frequency: 'Word frequency',
     frequencyBody:
-      'FrequencyWords zh_cn_50k by Hermit Dave, derived from OpenSubtitles 2018. Licensed CC BY-SA 4.0.',
+      'FrequencyWords zh_cn_50k by Hermit Dave, derived from OpenSubtitles 2018. Content licensed CC BY-SA 4.0.',
     pinyin: 'Pinyin sentence suggestions',
     pinyinBody:
-      'Pinyin-to-Hanzi suggestions use pinyin-input-method-engine, a TypeScript port of Pinyin2Hanzi. The DAG model and dictionaries are MIT-licensed and loaded on demand.',
+      'Pinyin-to-Hanzi suggestions use pinyin-input-method-engine. Its DAG dictionaries are the MIT-licensed Pinyin2Hanzi data by Letian Sun, loaded on demand.',
     code: 'Open-source code',
     codeBody:
-      'Hanzi Writer (MIT), pinyin-pro (MIT), pinyin-input-method-engine (MIT), React (MIT), Vite (MIT), Tailwind CSS (MIT), Dexie (Apache 2.0), i18next (MIT).',
-    arphic: 'Arphic Public License',
+      'Hanzi Writer (MIT), pinyin-pro (MIT), React and React Router (MIT), Vite (MIT), Tailwind CSS (MIT), Dexie and Dexie React Hooks (Apache 2.0), Zustand (MIT), i18next and react-i18next (MIT), Lucide icons (ISC), svg-path-bounds (MIT).',
     viewLicense: 'View license',
     dataLicense: 'Data license',
     dataLicenseBody:
@@ -500,17 +499,16 @@ const vi = {
       'CVDICT của Phong Phan, dịch từ CC-CEDICT. Giấy phép CC BY-SA 4.0. Một số mục được dịch máy và có thể chưa hoàn hảo.',
     hsk: 'Danh sách HSK 3.0',
     hskBody:
-      'Danh sách từ và chữ HSK 3.0 (2021), qua elkmovie/hsk30 và ivankra/hsk30. Dữ liệu trong kho theo giấy phép MIT; tiêu chuẩn gốc do Bộ Giáo dục Trung Quốc công bố.',
+      'Danh sách từ và chữ HSK 3.0 (2021), qua ivankra/hsk30, dựa trên elkmovie/hsk30 và shawkynasr/HSK-official-Query-System. Dữ liệu trong kho theo giấy phép MIT; tiêu chuẩn gốc do Bộ Giáo dục Trung Quốc công bố.',
     frequency: 'Tần suất từ',
     frequencyBody:
-      'FrequencyWords zh_cn_50k của Hermit Dave, dựa trên OpenSubtitles 2018. Giấy phép CC BY-SA 4.0.',
+      'FrequencyWords zh_cn_50k của Hermit Dave, dựa trên OpenSubtitles 2018. Nội dung theo giấy phép CC BY-SA 4.0.',
     pinyin: 'Gợi ý câu từ pinyin',
     pinyinBody:
-      'Gợi ý pinyin sang chữ Hán dùng pinyin-input-method-engine, bản TypeScript của Pinyin2Hanzi. Mô hình DAG và từ điển theo giấy phép MIT, được tải khi cần.',
+      'Gợi ý pinyin sang chữ Hán dùng pinyin-input-method-engine. Từ điển DAG của nó chính là dữ liệu Pinyin2Hanzi của Letian Sun, theo giấy phép MIT và được tải khi cần.',
     code: 'Mã nguồn mở',
     codeBody:
-      'Hanzi Writer (MIT), pinyin-pro (MIT), pinyin-input-method-engine (MIT), React (MIT), Vite (MIT), Tailwind CSS (MIT), Dexie (Apache 2.0), i18next (MIT).',
-    arphic: 'Giấy phép Arphic',
+      'Hanzi Writer (MIT), pinyin-pro (MIT), React và React Router (MIT), Vite (MIT), Tailwind CSS (MIT), Dexie và Dexie React Hooks (Apache 2.0), Zustand (MIT), i18next và react-i18next (MIT), biểu tượng Lucide (ISC), svg-path-bounds (MIT).',
     viewLicense: 'Xem giấy phép',
     dataLicense: 'Giấy phép dữ liệu',
     dataLicenseBody:

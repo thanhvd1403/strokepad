@@ -103,6 +103,10 @@ export function Licenses() {
         links={[
           { label: 'elkmovie/hsk30', href: 'https://github.com/elkmovie/hsk30' },
           { label: 'ivankra/hsk30', href: 'https://github.com/ivankra/hsk30' },
+          {
+            label: 'HSK query export',
+            href: 'https://github.com/shawkynasr/HSK-official-Query-System',
+          },
         ]}
       />
 
@@ -137,7 +141,7 @@ export function Licenses() {
 
       <SourceCard
         title={t('licenses.code')}
-        license="MIT"
+        license="Mixed"
         body={t('licenses.codeBody')}
         links={[
           { label: 'Hanzi Writer', href: 'https://github.com/chanind/hanzi-writer' },
@@ -154,24 +158,6 @@ export function Licenses() {
           <p className="mt-0.5 text-xs leading-relaxed text-muted">
             {t('licenses.appLicenseBody')}
           </p>
-        </div>
-      </Card>
-
-      <Card className="flex items-start gap-3 p-4">
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-muted">
-          <FileText className="h-4 w-4" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-ink">{t('licenses.arphic')}</p>
-          <a
-            href="/licenses/ARPHICPL.TXT"
-            target="_blank"
-            rel="noreferrer"
-            className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-accent underline-offset-2 hover:underline"
-          >
-            {t('licenses.viewLicense')}
-            <ExternalLink className="h-3 w-3" />
-          </a>
         </div>
       </Card>
 

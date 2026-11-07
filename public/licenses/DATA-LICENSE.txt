@@ -38,8 +38,10 @@ modify it, share the modified data under the same license.
 HSK 3.0 lists
 -------------
 Sources:
-- https://github.com/elkmovie/hsk30
-- https://github.com/ivankra/hsk30
+- https://github.com/ivankra/hsk30 (the files used by this project)
+- https://github.com/elkmovie/hsk30 (OCR data used by ivankra/hsk30)
+- https://github.com/shawkynasr/HSK-official-Query-System (pinyin and part of
+  speech data used by ivankra/hsk30)
 License: MIT (repository data). The underlying HSK 3.0 standard is published
 by the Chinese Ministry of Education.
 
@@ -48,10 +50,23 @@ Word frequency
 Source: FrequencyWords zh_cn_50k by Hermit Dave
 (https://github.com/hermitdave/FrequencyWords), derived from OpenSubtitles
 2018.
-License: Creative Commons Attribution-ShareAlike 4.0 International.
+License: Creative Commons Attribution-ShareAlike 4.0 International for the
+content. The repository's code is MIT licensed.
+
+Pinyin model
+------------
+Source: pinyin-input-method-engine
+(https://gitee.com/tiger-with-wings-org/pinyin-input-method-engine), a
+TypeScript pinyin input-method engine.
+License: MIT.
+The DAG dictionaries served from public/data/pinyin (dag_char.json and
+dag_phrase.json) are the verbatim data files from Pinyin2Hanzi by Letian Sun
+(https://github.com/letiantian/Pinyin2Hanzi), also MIT licensed. Both license
+texts are in public/licenses/PINYIN-ENGINE.txt.
 
 Libraries
 ---------
-Hanzi Writer (MIT), pinyin-pro (MIT), React (MIT), Vite (MIT), Tailwind CSS
-(MIT), Dexie (Apache 2.0), i18next (MIT), svg-path-bounds (MIT).
-See package.json and the in-app licenses page for details.
+Hanzi Writer (MIT), pinyin-pro (MIT), React and React Router (MIT), Vite
+(MIT), Tailwind CSS (MIT), Dexie and Dexie React Hooks (Apache 2.0), Zustand
+(MIT), i18next and react-i18next (MIT), Lucide icons (ISC), svg-path-bounds
+(MIT). See package.json and the in-app licenses page for details.
