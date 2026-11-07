@@ -24,6 +24,7 @@ const charRankCache = new WeakMap<Entry[], Map<string, number>>()
 // character-frequency prior from the app dictionary breaks those near-ties.
 const RANK_WEIGHT = 0.02
 const MISSING_RANK = 20000
+const MAX_SUGGESTIONS = 20
 
 function getCharRanks(entries?: Entry[]) {
   if (!entries?.length) return null
@@ -179,7 +180,7 @@ export async function suggestPinyin(
   if (!yinJieList?.length) return []
 
   const engine = await loadPinyinEngine()
-  const paths = engine.query({ yinJieList, maxNum: 10, log: true })
+  const paths = engine.query({ yinJieList, maxNum: 30, log: true })
   const ranks = getCharRanks(entries)
 
   const scored = paths
@@ -199,7 +200,7 @@ export async function suggestPinyin(
     if (!text || seen.has(text) || !HAN_ONLY.test(text)) continue
     seen.add(text)
     results.push(text)
-    if (results.length >= 5) break
+    if (results.length >= MAX_SUGGESTIONS) break
   }
   return results
 }

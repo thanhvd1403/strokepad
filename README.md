@@ -272,7 +272,7 @@ There is no automated test suite yet. Manual checks cover:
 - A Chinese sentence with punctuation shows the **Practice your own text** card;
   the character count ignores punctuation, and Enter starts practice.
 - A pinyin query shows matching characters and words first. If there are no
-  dictionary matches, up to five sentence suggestions from the DAG model appear
+  dictionary matches, up to 20 sentence suggestions from the DAG model appear
   at the bottom; tapping one or pressing Enter practises the best sentence.
 - A pinyin query with a dictionary match (for example `nihao` → 你好) starts
   practice on Enter with that character or word, not a generated sentence.

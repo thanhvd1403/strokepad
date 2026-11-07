@@ -78,7 +78,6 @@ const en = {
     pinyinError:
       'Could not load pinyin suggestions. Check your connection and try again.',
     pinyinEmpty: 'No sentence suggestions for this pinyin.',
-    pinyinHint: 'Suggestions download about 3 MB once, then work offline.',
     chars: 'Characters',
     words: 'Words',
     loading: 'Loading dictionary…',
@@ -312,7 +311,6 @@ const vi = {
     pinyinError:
       'Không tải được gợi ý pinyin. Kiểm tra kết nối và thử lại.',
     pinyinEmpty: 'Không có gợi ý câu cho pinyin này.',
-    pinyinHint: 'Gợi ý tải khoảng 3 MB một lần, sau đó dùng được ngoại tuyến.',
     chars: 'Chữ',
     words: 'Từ',
     loading: 'Đang tải từ điển…',

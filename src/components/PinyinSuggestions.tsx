@@ -123,10 +123,6 @@ export function PinyinSuggestions({
           })}
         </div>
       )}
-
-      <p className="mt-3 text-[11px] leading-relaxed text-muted">
-        {t('search.pinyinHint')}
-      </p>
     </Card>
   )
 }
