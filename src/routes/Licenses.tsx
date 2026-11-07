@@ -49,7 +49,7 @@ export function Licenses() {
 
   return (
     <div className="animate-fade-up space-y-4">
-      <header className="px-1">
+      <header>
         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">
           {t('settings.about')}
         </p>

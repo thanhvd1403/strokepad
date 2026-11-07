@@ -136,7 +136,7 @@ export function Collections() {
 
   return (
     <div className="animate-fade-up space-y-4">
-      <header className="flex items-end justify-between gap-3 px-1">
+      <header className="flex items-end justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">
             {t('nav.collections')}

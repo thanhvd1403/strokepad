@@ -95,7 +95,7 @@ export function SearchResults({
 
       {results.length > 0 ? (
         <>
-          <div className="flex items-center justify-between px-1">
+          <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-ink">{resultLabel}</h2>
             <span className="text-xs font-medium text-muted">
               {t('search.resultsCount', { count: results.length })}

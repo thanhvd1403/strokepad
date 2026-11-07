@@ -96,6 +96,8 @@ body,
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Keep the centred column steady when a page does or does not scroll. */
+  scrollbar-gutter: stable;
 }
 
 body {

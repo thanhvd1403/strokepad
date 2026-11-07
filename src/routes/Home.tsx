@@ -61,7 +61,7 @@ function RecentSearches({
   if (!recent.length) return null
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between px-1">
+      <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em] text-muted">
           <History className="h-3.5 w-3.5" />
           {t('search.recent')}
@@ -233,7 +233,7 @@ export function Home() {
 
   return (
     <div className="animate-fade-up space-y-5">
-      <section className="space-y-3 px-1">
+      <section className="space-y-3">
         <div>
           <h1 className="text-[1.65rem] font-bold leading-tight tracking-tight text-ink">
             {t('search.startTitle')}
@@ -242,7 +242,7 @@ export function Home() {
         </div>
         <SearchBar value={query} onChange={setQuery} onSubmit={handleSubmit} />
         {submitting ? (
-          <p className="flex items-center gap-1.5 px-1 text-xs text-muted">
+          <p className="flex items-center gap-1.5 text-xs text-muted">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
             {t('search.pinyinFinding')}
           </p>
@@ -286,7 +286,7 @@ export function Home() {
           />
 
           <section className="space-y-2">
-            <div className="flex items-center justify-between px-1">
+            <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
                 {t('search.starter')}
               </h2>

@@ -46,7 +46,7 @@ function Section({
 }) {
   return (
     <section className="space-y-2">
-      <h2 className="px-1 text-[11px] font-bold uppercase tracking-[0.18em] text-muted">
+      <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted">
         {title}
       </h2>
       <Card className="divide-y divide-line/60 px-4 py-1">{children}</Card>
@@ -86,7 +86,7 @@ export function Settings() {
 
   return (
     <div className="animate-fade-up space-y-5">
-      <header className="px-1">
+      <header>
         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">
           {t('nav.settings')}
         </p>
