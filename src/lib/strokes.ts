@@ -1,5 +1,5 @@
 import svgPathBounds from 'svg-path-bounds'
-import type { Point, PracticeMode, StrokeData } from '../types'
+import type { Point, StrokeData } from '../types'
 
 const cache = new Map<string, Promise<StrokeData | null>>()
 
@@ -285,7 +285,11 @@ function directionScore(user: Point[], reference: Point[]) {
 }
 
 export interface MatchOptions {
-  mode: PracticeMode
+  /**
+   * True when a ghost stroke is visible (full or next-stroke mode). Tracing a
+   * guide uses a tighter position check; writing from memory is more lenient.
+   */
+  guide: boolean
   size: number
   padding: number
   leniency: number
@@ -307,7 +311,7 @@ export function matchStroke(
   referenceStroke: Point[],
   options: MatchOptions,
 ): MatchResult {
-  const { mode, size, padding, leniency, acceptedUser, acceptedReference } = options
+  const { guide, size, padding, leniency, acceptedUser, acceptedReference } = options
   const charSize = size - padding * 2
   const userLength = pathLength(userStroke)
   const referenceLength = pathLength(referenceStroke)
@@ -331,7 +335,7 @@ export function matchStroke(
   let adjustedUserAnchor = userAnchor
   let positionTolerance = 0.24 * charSize * leniency
 
-  if (mode === 'plain') {
+  if (!guide) {
     const offset = averageOffset(acceptedUser, acceptedReference)
     adjustedUserAnchor = {
       x: userAnchor.x - offset.x,

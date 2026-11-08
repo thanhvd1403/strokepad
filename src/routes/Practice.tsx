@@ -35,9 +35,9 @@ import { getReferenceStrokes, loadStrokeData, matchStroke } from '../lib/strokes
 import { useSettings } from '../store/settings'
 import type {
   Entry,
+  GhostMode,
   GridStyle,
   Point,
-  PracticeMode,
   Script,
   StrokeData,
 } from '../types'
@@ -58,12 +58,10 @@ export function Practice() {
   const language = useSettings((state) => state.language)
   const script = useSettings((state) => state.script)
   const setScript = useSettings((state) => state.setScript)
-  const mode = useSettings((state) => state.mode)
-  const setMode = useSettings((state) => state.setMode)
+  const ghost = useSettings((state) => state.ghost)
+  const setGhost = useSettings((state) => state.setGhost)
   const grid = useSettings((state) => state.grid)
   const setGrid = useSettings((state) => state.setGrid)
-  const showOutline = useSettings((state) => state.showOutline)
-  const setShowOutline = useSettings((state) => state.setShowOutline)
   const blendOutline = useSettings((state) => state.blendOutline)
   const setBlendOutline = useSettings((state) => state.setBlendOutline)
   const showNumbers = useSettings((state) => state.showNumbers)
@@ -194,7 +192,7 @@ export function Practice() {
       if (!reference) return false
 
       const result = matchStroke(stroke, reference, {
-        mode,
+        guide: ghost !== 'off',
         size: 1024,
         padding: 0,
         leniency,
@@ -220,7 +218,7 @@ export function Practice() {
       if (sound && typeof navigator.vibrate === 'function') navigator.vibrate([18, 28, 18])
       return false
     },
-    [charIndex, leniency, markCompleted, mode, referenceStrokes, sound, triggerSuccessFlash],
+    [charIndex, ghost, leniency, markCompleted, referenceStrokes, sound, triggerSuccessFlash],
   )
 
   const handleUndo = useCallback(() => {
@@ -340,11 +338,12 @@ export function Practice() {
 
       <div className="flex items-center justify-between gap-2">
         <Segmented
-          value={mode}
-          onChange={(value: PracticeMode) => setMode(value)}
+          value={ghost}
+          onChange={(value: GhostMode) => setGhost(value)}
           options={[
-            { value: 'guided', label: t('practice.guided') },
-            { value: 'plain', label: t('practice.plain') },
+            { value: 'full', label: t('practice.ghostFull') },
+            { value: 'next', label: t('practice.ghostNext') },
+            { value: 'off', label: t('practice.ghostOff') },
           ]}
         />
         <div className="text-right">
@@ -364,9 +363,8 @@ export function Practice() {
         ) : strokeData ? (
           <PracticeCanvas
             data={strokeData}
-            mode={mode}
+            ghost={ghost}
             grid={grid}
-            showOutline={showOutline}
             blendOutline={blendOutline}
             successFlashKey={successFlashKey}
             showNumbers={showNumbers}
@@ -496,18 +494,23 @@ export function Practice() {
       >
         <div className="space-y-5">
           <div>
-            <p className="mb-2 text-xs font-semibold text-muted">{t('practice.title')}</p>
+            <p className="mb-2 text-xs font-semibold text-muted">{t('practice.ghost')}</p>
             <Segmented
               className="w-full"
-              value={mode}
-              onChange={(value: PracticeMode) => setMode(value)}
+              value={ghost}
+              onChange={(value: GhostMode) => setGhost(value)}
               options={[
-                { value: 'guided', label: t('practice.guided') },
-                { value: 'plain', label: t('practice.plain') },
+                { value: 'full', label: t('practice.ghostFull') },
+                { value: 'next', label: t('practice.ghostNext') },
+                { value: 'off', label: t('practice.ghostOff') },
               ]}
             />
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              {mode === 'guided' ? t('practice.guidedHint') : t('practice.plainHint')}
+              {ghost === 'full'
+                ? t('practice.ghostFullHint')
+                : ghost === 'next'
+                  ? t('practice.ghostNextHint')
+                  : t('practice.ghostOffHint')}
             </p>
           </div>
 
@@ -577,12 +580,6 @@ export function Practice() {
           </div>
 
           <div className="divide-y divide-line/60">
-            <Toggle
-              checked={showOutline}
-              onChange={setShowOutline}
-              label={t('practice.showOutline')}
-              description={t('practice.guidedHint')}
-            />
             <Toggle
               checked={blendOutline}
               onChange={setBlendOutline}

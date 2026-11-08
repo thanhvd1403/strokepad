@@ -20,7 +20,7 @@ import {
 } from '../lib/db'
 import { useInstallPrompt } from '../lib/hooks'
 import { useSettings } from '../store/settings'
-import type { GridStyle, Language, PracticeMode, Script, Theme } from '../types'
+import type { GhostMode, GridStyle, Language, Script, Theme } from '../types'
 
 const REPO_URL = 'https://github.com/thanhvd1403/strokepad'
 
@@ -62,8 +62,8 @@ export function Settings() {
   const setScript = useSettings((state) => state.setScript)
   const theme = useSettings((state) => state.theme)
   const setTheme = useSettings((state) => state.setTheme)
-  const mode = useSettings((state) => state.mode)
-  const setMode = useSettings((state) => state.setMode)
+  const ghost = useSettings((state) => state.ghost)
+  const setGhost = useSettings((state) => state.setGhost)
   const grid = useSettings((state) => state.grid)
   const setGrid = useSettings((state) => state.setGrid)
   const hints = useSettings((state) => state.hints)
@@ -146,14 +146,15 @@ export function Settings() {
 
       <Section title={t('practice.title')}>
         <div className="py-3">
-          <p className="mb-2 text-xs font-medium text-ink">{t('settings.defaultMode')}</p>
+          <p className="mb-2 text-xs font-medium text-ink">{t('practice.ghost')}</p>
           <Segmented
             className="w-full"
-            value={mode}
-            onChange={(value: PracticeMode) => setMode(value)}
+            value={ghost}
+            onChange={(value: GhostMode) => setGhost(value)}
             options={[
-              { value: 'guided', label: t('practice.guided') },
-              { value: 'plain', label: t('practice.plain') },
+              { value: 'full', label: t('practice.ghostFull') },
+              { value: 'next', label: t('practice.ghostNext') },
+              { value: 'off', label: t('practice.ghostOff') },
             ]}
           />
         </div>

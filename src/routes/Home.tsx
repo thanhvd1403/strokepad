@@ -100,8 +100,8 @@ function HowItWorks() {
     },
     {
       icon: PenLine,
-      title: t('practice.guided'),
-      body: t('practice.guidedHint'),
+      title: t('practice.ghost'),
+      body: t('practice.ghostHint'),
     },
     {
       icon: Library,

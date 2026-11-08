@@ -42,7 +42,7 @@ export interface CollectionItem {
   createdAt: number
 }
 
-export type PracticeMode = 'guided' | 'plain'
+export type GhostMode = 'full' | 'next' | 'off'
 export type GridStyle = 'rice' | 'field' | 'none'
 export type Script = 'simplified' | 'traditional'
 export type Language = 'en' | 'vi'

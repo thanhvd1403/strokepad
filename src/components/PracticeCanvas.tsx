@@ -16,7 +16,7 @@ import {
   pointsToSvgPath,
   type CharacterTransform,
 } from '../lib/strokes'
-import type { GridStyle, Point, PracticeMode, StrokeData } from '../types'
+import type { GhostMode, GridStyle, Point, StrokeData } from '../types'
 import { useSettings } from '../store/settings'
 import { GridLines } from './PracticeGrid'
 
@@ -30,7 +30,7 @@ function Outline({
   isDark,
   acceptedCount,
   blend,
-  hideShadow,
+  ghost,
   flashIntensity,
 }: {
   data: StrokeData
@@ -40,7 +40,7 @@ function Outline({
   isDark: boolean
   acceptedCount: number
   blend: boolean
-  hideShadow: boolean
+  ghost: GhostMode
   flashIntensity: number
 }) {
   if (size <= 0) return null
@@ -53,9 +53,12 @@ function Outline({
       <g transform={svgTransform}>
         {data.strokes.map((path, index) => {
           const accepted = blend && index < acceptedCount
-          // In Plain mode the faint guide shadow is hidden, but accepted
-          // strokes still fill the character.
-          if (!accepted && hideShadow) return null
+          // Only the requested ghost strokes are shown: the whole character,
+          // the next stroke alone, or nothing. Accepted strokes still fill the
+          // character when blending is on.
+          const ghostVisible =
+            ghost === 'full' || (ghost === 'next' && index === acceptedCount)
+          if (!accepted && !ghostVisible) return null
           return (
             <path
               key={index}
@@ -213,9 +216,8 @@ function Hint({
 
 export function PracticeCanvas({
   data,
-  mode,
+  ghost,
   grid,
-  showOutline,
   blendOutline,
   showNumbers,
   acceptedStrokes,
@@ -227,9 +229,8 @@ export function PracticeCanvas({
   disabled = false,
 }: {
   data: StrokeData
-  mode: PracticeMode
+  ghost: GhostMode
   grid: GridStyle
-  showOutline: boolean
   blendOutline: boolean
   showNumbers: boolean
   acceptedStrokes: Point[][]
@@ -344,8 +345,7 @@ export function PracticeCanvas({
     theme,
     systemDark,
     grid,
-    mode,
-    showOutline,
+    ghost,
     blendOutline,
     showNumbers,
     hintVisible,
@@ -414,7 +414,7 @@ export function PracticeCanvas({
           style={grid}
           flashIntensity={flashIntensity}
         />
-        {blendOutline || (mode === 'guided' && showOutline) ? (
+        {blendOutline || ghost !== 'off' ? (
           <Outline
             data={data}
             transform={transform}
@@ -423,7 +423,7 @@ export function PracticeCanvas({
             isDark={isDark}
             acceptedCount={acceptedStrokes.length}
             blend={blendOutline}
-            hideShadow={blendOutline && mode === 'plain'}
+            ghost={ghost}
             flashIntensity={flashIntensity}
           />
         ) : null}

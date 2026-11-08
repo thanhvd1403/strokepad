@@ -20,14 +20,12 @@ screen and use it offline after the first visit.
   word frequency. Filter results to HSK 1–9.
 - **Character strip** — a word or sentence is split into characters; tap any
   character to practise it.
-- **Guided mode** — a centred outline, optional stroke numbers, hints, and
-  stroke-by-stroke validation. Wrong strokes are rejected and can be retried.
-- **Plain mode** — no outline, with lenient position matching so off-centre
-  writing still counts.
+- **Ghost stroke** — keep the whole character visible, show only the next stroke,
+  or turn the guide off. With a guide visible, position is checked more tightly;
+  with it off, matching is lenient so off-centre writing still counts.
 - **Blend into outline** — an optional mode where a correct stroke replaces
   your ink with the character's shadow outline, so the character builds up line
-  by line in stroke order. In Plain mode the guide shadow is hidden, so only
-  accepted strokes appear.
+  by line in stroke order. With the ghost off, only accepted strokes appear.
 - **Completion flash** — one smooth green fade across the character and the grid
   border when all strokes are correct. No popup.
 - **Stroke-order animation** — watch the character drawn stroke by stroke, on
@@ -60,11 +58,10 @@ Open the gear icon on the practice screen to adjust:
 
 | Option | What it does |
 | --- | --- |
-| Guided / Plain | Switch between tracing the shadow and writing freely. |
+| Ghost stroke | Show the whole character, only the next stroke, or no guide. |
 | Script | Switch between simplified and traditional characters. |
 | Grid | Rice grid (米字格), field grid (田字格), or no grid. |
 | Blend into outline | Correct strokes fill the shadow instead of showing your ink. |
-| Outline | Show or hide the faint character shadow. |
 | Stroke numbers | Show the start point and number of each stroke. |
 | Hints | Show the next stroke as a dashed guide after misses. |
 | Leniency | Make stroke grading stricter or more forgiving. |
@@ -196,7 +193,7 @@ The application code is MIT licensed. See [`LICENSE`](./LICENSE).
 ## How stroke checking works
 
 The app uses the stroke medians from Make Me a Hanzi. Each character is centred
-and scaled using the bounds of its actual SVG outlines, so the guided shadow
+and scaled using the bounds of its actual SVG outlines, so the ghost shadow
 sits neatly inside the grid.
 
 For every pointer stroke:
@@ -204,9 +201,10 @@ For every pointer stroke:
 1. The user stroke and the expected median are resampled to 24 points.
 2. Shape is compared after centring and normalising both strokes.
 3. Direction is compared from start to end.
-4. Position is compared to the expected stroke. Guided mode uses a tighter
-   tolerance; plain mode estimates a translation offset from the strokes
-   already accepted, so a drawing that is small or shifted still matches.
+4. Position is compared to the expected stroke. With a ghost guide visible the
+   tolerance is tighter; with the ghost off the matcher estimates a translation
+   offset from the strokes already accepted, so a drawing that is small or
+   shifted still matches.
 5. A weighted score decides whether the stroke is accepted. The leniency slider
    in practice settings adjusts the threshold.
 
@@ -257,8 +255,10 @@ There is no automated test suite yet. Manual checks cover:
 
 - Search by Chinese, full pinyin, initials, and spaced pinyin.
 - HSK filter changes the result set.
-- Guided mode accepts all strokes of a character and rejects wrong strokes.
-- Plain mode accepts an off-centre stroke.
+- Ghost stroke: Full shows the whole character, Next shows only the next stroke,
+  and Off shows no guide.
+- With a ghost guide, all strokes are accepted and wrong strokes are rejected;
+  with the ghost off, an off-centre stroke is accepted.
 - Blend-into-outline mode leaves no ink on the canvas and reveals the shadow.
 - Completion flash has no popup and fades the grid border and strokes.
 - Collections: the star toggles Favorite, the folder button adds an item to

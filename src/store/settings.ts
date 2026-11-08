@@ -1,15 +1,14 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import i18n from '../i18n'
-import type { GridStyle, Language, PracticeMode, Script, Theme } from '../types'
+import type { GhostMode, GridStyle, Language, Script, Theme } from '../types'
 
 interface SettingsState {
   language: Language
   script: Script
   theme: Theme
-  mode: PracticeMode
+  ghost: GhostMode
   grid: GridStyle
-  showOutline: boolean
   blendOutline: boolean
   showNumbers: boolean
   hints: boolean
@@ -20,9 +19,8 @@ interface SettingsState {
   setLanguage: (language: Language) => void
   setScript: (script: Script) => void
   setTheme: (theme: Theme) => void
-  setMode: (mode: PracticeMode) => void
+  setGhost: (ghost: GhostMode) => void
   setGrid: (grid: GridStyle) => void
-  setShowOutline: (value: boolean) => void
   setBlendOutline: (value: boolean) => void
   setShowNumbers: (value: boolean) => void
   setHints: (value: boolean) => void
@@ -43,9 +41,8 @@ export const useSettings = create<SettingsState>()(
       language: browserLanguage,
       script: 'simplified',
       theme: 'system',
-      mode: 'guided',
+      ghost: 'full',
       grid: 'rice',
-      showOutline: true,
       blendOutline: false,
       showNumbers: false,
       hints: true,
@@ -60,9 +57,8 @@ export const useSettings = create<SettingsState>()(
       },
       setScript: (script) => set({ script }),
       setTheme: (theme) => set({ theme }),
-      setMode: (mode) => set({ mode }),
+      setGhost: (ghost) => set({ ghost }),
       setGrid: (grid) => set({ grid }),
-      setShowOutline: (showOutline) => set({ showOutline }),
       setBlendOutline: (blendOutline) => set({ blendOutline }),
       setShowNumbers: (showNumbers) => set({ showNumbers }),
       setHints: (hints) => set({ hints }),
@@ -76,7 +72,21 @@ export const useSettings = create<SettingsState>()(
       // rename.
       name: 'hanzi-settings',
       storage: createJSONStorage(() => localStorage),
-      version: 1,
+      version: 2,
+      migrate: (persistedState, version) => {
+        // v1 stored a guided/plain mode plus a separate outline toggle. The
+        // guided/plain choice now lives in the three ghost modes.
+        if (version >= 2) return persistedState as SettingsState
+        const old = persistedState as Partial<SettingsState> & {
+          mode?: 'guided' | 'plain'
+          showOutline?: boolean
+        }
+        const { mode, showOutline, ...rest } = old
+        return {
+          ...rest,
+          ghost: mode === 'plain' || showOutline === false ? 'off' : 'full',
+        } as SettingsState
+      },
     },
   ),
 )
