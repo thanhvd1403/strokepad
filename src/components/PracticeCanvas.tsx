@@ -69,7 +69,7 @@ function Outline({
           )
         })}
       </g>
-      {flashIntensity > 0 ? (
+      {blend && flashIntensity > 0 ? (
         <g transform={svgTransform} fill="var(--success)">
           {data.strokes.slice(0, acceptedCount).map((path, index) => (
             <path
