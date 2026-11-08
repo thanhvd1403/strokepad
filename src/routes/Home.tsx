@@ -1,24 +1,45 @@
-import { BookOpen, Dices, History, Library, Loader2, PenLine, Sparkles } from 'lucide-react'
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { BookOpen, Dices, History, Library, PenLine, Sparkles } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  ComposerCandidates,
+  type ComposerCandidate,
+} from '../components/ComposerCandidates'
+import { CompositionPreview } from '../components/CompositionPreview'
 import { HskFilter } from '../components/HskFilter'
 import { SearchBar } from '../components/SearchBar'
-import { SearchResults } from '../components/SearchResults'
 import { Badge, Button, Card, EmptyState } from '../components/ui'
+import {
+  readCandidateMemory,
+  rememberCandidate,
+} from '../lib/candidate-memory'
 import { loadEntries } from '../lib/data'
 import { useRecentSearches } from '../lib/hooks'
-import { isPinyinQuery, suggestPinyin } from '../lib/pinyin-suggest'
 import {
   containsHan,
+  normalizePinyinInput,
   randomStarter,
   searchEntries,
   starterEntries,
   type RankedEntry,
 } from '../lib/search'
 import { entryText, toScript } from '../lib/script'
+import { usePinyinSuggestions } from '../lib/use-pinyin-suggestions'
 import { useSettings } from '../store/settings'
 import type { Entry, EntryData, Script } from '../types'
+
+const ASCII_PUNCTUATION: Record<string, string> = {
+  ',': '，',
+  '.': '。',
+  '?': '？',
+  '!': '！',
+  ';': '；',
+}
+
+function convertPunctuation(value: string) {
+  return value.replace(/[,.?!;]/g, (char) => ASCII_PUNCTUATION[char] ?? char)
+}
 
 function StarterGrid({
   entries,
@@ -133,6 +154,11 @@ export function Home() {
   const script = useSettings((state) => state.script)
   const [searchParams, setSearchParams] = useSearchParams()
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '')
+  const [composedText, setComposedText] = useState('')
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [memory, setMemory] = useState(readCandidateMemory)
+  const inputRef = useRef<HTMLInputElement>(null)
   const [hskLevels, setHskLevels] = useState<number[]>(() =>
     (searchParams.get('hsk') ?? '')
       .split(',')
@@ -141,9 +167,7 @@ export function Home() {
   )
   const [data, setData] = useState<EntryData | null>(null)
   const [error, setError] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
   const { recent, add, clear } = useRecentSearches()
-  const deferredQuery = useDeferredValue(query)
 
   useEffect(() => {
     let cancelled = false
@@ -166,15 +190,53 @@ export function Home() {
     setSearchParams(params, { replace: true })
   }, [query, hskLevels, setSearchParams])
 
+  const trimmedQuery = query.trim()
+
   const results = useMemo(() => {
-    if (!data || !deferredQuery.trim()) return []
-    return searchEntries(data.entries, deferredQuery, hskLevels)
-  }, [data, deferredQuery, hskLevels])
+    if (!data || !trimmedQuery) return []
+    return searchEntries(data.entries, trimmedQuery, hskLevels)
+  }, [data, trimmedQuery, hskLevels])
+
+  const { status, suggestions, retry } = usePinyinSuggestions(
+    trimmedQuery,
+    data?.entries ?? [],
+    Boolean(data) && Boolean(trimmedQuery) && results.length < 9,
+  )
 
   const starters = useMemo(
     () => (data ? starterEntries(data.entries, 12) : []),
     [data],
   )
+
+  const candidates = useMemo<ComposerCandidate[]>(() => {
+    if (!data || !trimmedQuery) return []
+
+    const entryCandidates: ComposerCandidate[] = results
+      .slice(0, 9)
+      .map((entry) => ({
+        text: entryText(entry, script),
+        entry,
+      }))
+    const seen = new Set(entryCandidates.map((candidate) => candidate.text))
+    const extraCandidates: ComposerCandidate[] = suggestions
+      .map((text) => toScript(text, script, data.entries))
+      .filter((text) => !seen.has(text))
+      .slice(0, 4)
+      .map((text) => ({ text }))
+
+    const list = [...entryCandidates, ...extraCandidates]
+    const remembered = memory[normalizePinyinInput(trimmedQuery)]
+    if (remembered) {
+      const index = list.findIndex((candidate) => candidate.text === remembered)
+      if (index > 0) {
+        const [candidate] = list.splice(index, 1)
+        list.unshift(candidate)
+      }
+    }
+    return list
+  }, [data, trimmedQuery, results, script, suggestions, memory])
+
+  const activeIndex = Math.min(selectedIndex, Math.max(candidates.length - 1, 0))
 
   const practiceText = (text: string) => {
     navigate(`/practice?text=${encodeURIComponent(text)}&i=0`)
@@ -191,44 +253,133 @@ export function Home() {
     practiceText(text)
   }
 
-  const handleSubmit = () => {
-    const trimmed = query.trim()
-    if (!trimmed || submitting) return
+  const practiceComposed = () => {
+    const text = composedText.trim()
+    if (text) practiceSentence(text)
+  }
 
-    if (containsHan(trimmed)) {
-      practiceSentence(toScript(trimmed, script, data?.entries ?? []))
+  const focusInput = () => {
+    window.setTimeout(() => inputRef.current?.focus(), 0)
+  }
+
+  const remember = (text: string) => {
+    const key = normalizePinyinInput(query)
+    if (!key || !text) return
+    setMemory((current) => rememberCandidate(current, key, text))
+  }
+
+  const commit = (text: string, suffix = '') => {
+    if (!text) return
+    remember(text)
+    setComposedText((current) => current + text + suffix)
+    setQuery('')
+    setSelectedIndex(0)
+    setPreviewOpen(false)
+    focusInput()
+  }
+
+  const appendComposed = (text: string) => {
+    if (!text) return
+    setComposedText((current) => current + text)
+    setPreviewOpen(false)
+    focusInput()
+  }
+
+  const handleQueryChange = (next: string) => {
+    setPreviewOpen(false)
+
+    if (containsHan(next)) {
+      const cleaned = next.replace(/[a-zA-Z0-9\s]/g, '')
+      if (cleaned) appendComposed(convertPunctuation(cleaned))
+      setQuery('')
+      setSelectedIndex(0)
       return
     }
 
-    if (!isPinyinQuery(trimmed)) {
-      add(trimmed)
-      return
-    }
-
-    // Characters and words take priority. Only fall back to a generated
-    // sentence when the dictionary has no match.
-    const currentResults = data
-      ? searchEntries(data.entries, trimmed, hskLevels)
-      : []
-    if (currentResults.length > 0) {
-      practiceEntry(currentResults[0])
-      return
-    }
-
-    add(trimmed)
-    setSubmitting(true)
-    void suggestPinyin(trimmed, data?.entries)
-      .then((list) => {
-        const best = list[0]
-        if (best) {
-          practiceText(toScript(best, script, data?.entries ?? []))
+    const punctuation = next.match(/^(.*?)([,.?!;，。！？；：、…]+)$/)
+    if (punctuation) {
+      const pinyinPart = punctuation[1]
+      const suffix = convertPunctuation(punctuation[2])
+      if (pinyinPart === query) {
+        if (query.trim()) {
+          const candidate = candidates[activeIndex]
+          if (candidate) commit(candidate.text, suffix)
+          return
         }
-      })
-      .catch(() => {
-        // Keep the dictionary results visible; the suggestion card shows the
-        // error and a retry action.
-      })
-      .finally(() => setSubmitting(false))
+        appendComposed(suffix)
+        setQuery('')
+        setSelectedIndex(0)
+        return
+      }
+      setQuery(pinyinPart)
+      setSelectedIndex(0)
+      return
+    }
+
+    setQuery(next)
+    setSelectedIndex(0)
+  }
+
+  const handleSpace = () => {
+    if (previewOpen) return
+    const candidate = candidates[activeIndex]
+    if (candidate) commit(candidate.text)
+  }
+
+  const moveSelection = (delta: number) => {
+    if (!candidates.length) return
+    setSelectedIndex(
+      Math.min(Math.max(activeIndex + delta, 0), candidates.length - 1),
+    )
+  }
+
+  const handleEscape = () => {
+    if (query) {
+      setQuery('')
+      setSelectedIndex(0)
+      setPreviewOpen(false)
+      focusInput()
+      return
+    }
+    if (previewOpen) setPreviewOpen(false)
+  }
+
+  const handleDeleteComposed = () => {
+    if (query) return
+    setComposedText((current) => Array.from(current).slice(0, -1).join(''))
+    setPreviewOpen(false)
+    focusInput()
+  }
+
+  const handleClear = () => {
+    if (query) {
+      setQuery('')
+      setSelectedIndex(0)
+      setPreviewOpen(false)
+    } else {
+      setComposedText('')
+      setPreviewOpen(false)
+    }
+    focusInput()
+  }
+
+  const handleSubmit = () => {
+    if (previewOpen) {
+      if (composedText.trim()) practiceComposed()
+      return
+    }
+
+    if (trimmedQuery) {
+      const candidate = candidates[activeIndex]
+      if (candidate) {
+        const next = composedText + candidate.text
+        commit(candidate.text)
+        if (next.trim()) setPreviewOpen(true)
+        return
+      }
+    }
+
+    if (composedText.trim()) setPreviewOpen(true)
   }
 
   return (
@@ -240,13 +391,19 @@ export function Home() {
           </h1>
           <p className="mt-1 text-sm leading-relaxed text-muted">{t('search.startHint')}</p>
         </div>
-        <SearchBar value={query} onChange={setQuery} onSubmit={handleSubmit} />
-        {submitting ? (
-          <p className="flex items-center gap-1.5 text-xs text-muted">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            {t('search.pinyinFinding')}
-          </p>
-        ) : null}
+        <SearchBar
+          value={query}
+          composed={composedText}
+          onChange={handleQueryChange}
+          onSubmit={handleSubmit}
+          onSpace={handleSpace}
+          onNavigate={moveSelection}
+          onEscape={handleEscape}
+          onDeleteComposed={handleDeleteComposed}
+          onClear={handleClear}
+          canNavigate={!previewOpen && candidates.length > 1}
+          inputRef={inputRef}
+        />
         <HskFilter selected={hskLevels} onChange={setHskLevels} />
       </section>
 
@@ -268,22 +425,21 @@ export function Home() {
           <p className="mt-4 text-xs text-muted">{t('search.loading')}</p>
           <p className="mt-1 text-xs leading-relaxed text-muted">{t('search.loadingHint')}</p>
         </Card>
-      ) : query.trim() ? (
-        <SearchResults
-          results={results}
-          query={query}
-          script={script}
-          entries={data.entries}
-          onPractice={practiceEntry}
-          onPracticeSentence={practiceSentence}
+      ) : previewOpen && composedText.trim() ? (
+        <CompositionPreview text={composedText} onPractice={practiceComposed} />
+      ) : trimmedQuery ? (
+        <ComposerCandidates
+          candidates={candidates}
+          status={status}
+          selectedIndex={activeIndex}
+          onSelect={(text) => commit(text)}
+          onRetry={retry}
         />
+      ) : composedText.trim() ? (
+        <p className="text-xs leading-relaxed text-muted">{t('search.composeHint')}</p>
       ) : (
         <div className="space-y-6">
-          <RecentSearches
-            recent={recent}
-            onPick={(value) => setQuery(value)}
-            onClear={clear}
-          />
+          <RecentSearches recent={recent} onPick={handleQueryChange} onClear={clear} />
 
           <section className="space-y-2">
             <div className="flex items-center justify-between">

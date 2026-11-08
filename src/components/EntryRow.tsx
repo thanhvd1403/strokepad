@@ -1,4 +1,5 @@
 import { ChevronRight } from 'lucide-react'
+import { clsx } from 'clsx'
 import { useTranslation } from 'react-i18next'
 import { entryStrokes, entryText } from '../lib/script'
 import { useSettings } from '../store/settings'
@@ -18,9 +19,11 @@ function hskTone(hsk: number) {
 export function EntryRow({
   entry,
   onPractice,
+  highlighted = false,
 }: {
   entry: Entry
   onPractice: (entry: Entry) => void
+  highlighted?: boolean
 }) {
   const { t } = useTranslation()
   const language = useSettings((state) => state.language)
@@ -43,7 +46,13 @@ export function EntryRow({
           onPractice(entry)
         }
       }}
-      className="group flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-transparent px-2 py-2.5 text-left transition hover:border-line hover:bg-surface-2/60 active:scale-[0.995]"
+      aria-current={highlighted ? 'true' : undefined}
+      className={clsx(
+        'group flex w-full cursor-pointer items-center gap-3 rounded-2xl border px-2 py-2.5 text-left transition active:scale-[0.995]',
+        highlighted
+          ? 'border-accent/40 bg-accent-soft/40'
+          : 'border-transparent hover:border-line hover:bg-surface-2/60',
+      )}
     >
       <span className="hanzi grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent-soft/70 text-2xl font-medium text-ink">
         {display}

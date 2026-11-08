@@ -13,12 +13,19 @@ screen and use it offline after the first visit.
   `xi'an`, or `你好`.
 - **Tone-aware ranking** — `ni3` puts 你 first, `ni2` 泥, and `ni4` 腻; input
   without tones still works.
+- **IME-style composition** — type a pinyin chunk, then press Space or tap a
+  candidate to commit it. The active pinyin stays inline with the committed
+  Chinese. Candidates are calculated per chunk, arrow keys move the highlight,
+  Backspace edits the pinyin first and then the committed text, and chosen
+  candidates are remembered per chunk. Enter previews the sentence before
+  practice.
 - **Practice your own text** — type any Chinese sentence, punctuation and
   spaces included, and practise every character in order.
-- **Pinyin sentence fallback** — as you type pinyin, matching characters and
-  words appear immediately. If nothing matches, sentence suggestions from the
-  MIT pinyin-input-method-engine DAG model appear at the bottom for you to
-  choose. The model is cached for offline use after the first suggestion.
+- **Pinyin sentence fallback** — as you type a chunk, matching characters and
+  words appear immediately. When the dictionary has few matches, sentence
+  suggestions from the MIT pinyin-input-method-engine DAG model fill in the
+  remaining candidates. The model is cached for offline use after the first
+  suggestion.
 - **HSK 3.0 aware ranking** — exact matches first, then HSK level and general
   word frequency. Filter results to HSK 1–9.
 - **Character strip** — a word or sentence is split into characters; tap any
@@ -286,11 +293,24 @@ There is no automated test suite yet. Manual checks cover:
   stores `entries.json?v=<DATA_VERSION>`, and survives an app update.
 - A Chinese sentence with punctuation shows the **Practice your own text** card;
   the character count ignores punctuation, and Enter starts practice.
-- A pinyin query shows matching characters and words first. If there are no
-  dictionary matches, up to 20 sentence suggestions from the DAG model appear
-  at the bottom; tapping one or pressing Enter practises the best sentence.
-- A pinyin query with a dictionary match (for example `nihao` → 你好) starts
-  practice on Enter with that character or word, not a generated sentence.
+- A pinyin chunk shows dictionary candidates first; when there are fewer than
+  nine, sentence suggestions fill in the remaining candidates. Enter commits
+  the active chunk and shows the composed-text preview.
+- A pinyin chunk with a dictionary match (for example `nihao` → 你好) shows
+  dictionary candidates first; sentence suggestions fill in when the candidate
+  list is short.
+- IME composition: type `wo`, press Space, and 我 is appended inline; type
+  `mingtian`, press Space, and 明天 follows it.
+- Candidates are per chunk; arrow keys move the highlight and Space or a tap
+  commits the selected one.
+- Backspace edits the active pinyin first; when it is empty, it deletes the last
+  committed character.
+- Enter commits the active chunk and shows the composed-text preview; a second
+  Enter starts practice.
+- Chosen candidates are remembered per chunk; typing `liangdian` again ranks the
+  previous choice first.
+- Typing Chinese or punctuation appends it to the composed text; ASCII
+  punctuation is converted to Chinese punctuation.
 
 Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
 1.0 SEO**.

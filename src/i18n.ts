@@ -79,6 +79,11 @@ const en = {
     pinyinError:
       'Could not load pinyin suggestions. Check your connection and try again.',
     pinyinEmpty: 'No sentence suggestions for this pinyin.',
+    candidates: 'Candidates',
+    noCandidates: 'No candidates yet. Keep typing or adjust the pinyin.',
+    composeHint: 'Press Enter to review the sentence, or keep typing.',
+    previewEnter: 'Press Enter again to practise.',
+    composePlaceholder: 'Keep typing pinyin…',
     chars: 'Characters',
     words: 'Words',
     loading: 'Loading dictionary…',
@@ -342,6 +347,11 @@ const vi = {
     pinyinError:
       'Không tải được gợi ý pinyin. Kiểm tra kết nối và thử lại.',
     pinyinEmpty: 'Không có gợi ý câu cho pinyin này.',
+    candidates: 'Ứng viên',
+    noCandidates: 'Chưa có ứng viên. Tiếp tục gõ hoặc chỉnh pinyin.',
+    composeHint: 'Nhấn Enter để xem lại câu, hoặc tiếp tục gõ.',
+    previewEnter: 'Nhấn Enter lần nữa để luyện.',
+    composePlaceholder: 'Tiếp tục gõ pinyin…',
     chars: 'Chữ',
     words: 'Từ',
     loading: 'Đang tải từ điển…',
