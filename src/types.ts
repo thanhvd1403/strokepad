@@ -7,6 +7,7 @@ export interface Entry {
   trad: string
   pinyin: string
   pinyinFlat: string
+  pinyinNumbered: string
   initials: string
   en: string[]
   vi: string[]

@@ -1,4 +1,7 @@
 import type { Entry } from '../types'
+import { normalizePinyinInput, toNumberedPinyin } from './pinyin-text'
+
+export { normalizePinyinInput } from './pinyin-text'
 
 const HAN = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/
 
@@ -10,15 +13,6 @@ export function containsHan(value: string) {
   return HAN.test(value)
 }
 
-export function normalizePinyinInput(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[üǖǘǚǜ]/g, 'v')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z]/g, '')
-}
-
 export function normalizeChineseInput(value: string) {
   return value.trim().replace(/\s+/g, '')
 }
@@ -27,7 +21,19 @@ export interface RankedEntry extends Entry {
   score: number
 }
 
-function scoreEntry(entry: Entry, query: string, hanQuery: boolean) {
+function toneBoost(entry: Entry, toneQuery: string) {
+  if (!toneQuery || !/[0-9]/.test(toneQuery) || !entry.pinyinNumbered) return 0
+
+  for (const query of toneQuery.split('|')) {
+    for (const variant of entry.pinyinNumbered.split('|')) {
+      if (variant === query) return 320
+      if (variant.startsWith(query)) return 160
+    }
+  }
+  return 0
+}
+
+function scoreEntry(entry: Entry, query: string, hanQuery: boolean, toneQuery: string) {
   let base = 0
 
   if (hanQuery) {
@@ -57,7 +63,14 @@ function scoreEntry(entry: Entry, query: string, hanQuery: boolean) {
   const lengthPenalty = (entry.simp.length - 1) * 5
   const typeBonus = hanQuery && query.trim().length === 1 && entry.type === 'char' ? 30 : 0
 
-  return base + hskBoost + freqBoost - lengthPenalty + typeBonus
+  return (
+    base +
+    hskBoost +
+    freqBoost -
+    lengthPenalty +
+    typeBonus +
+    toneBoost(entry, toneQuery)
+  )
 }
 
 export function searchEntries(
@@ -69,11 +82,12 @@ export function searchEntries(
   const trimmed = query.trim()
   if (!trimmed) return []
   const hanQuery = containsHan(trimmed)
+  const toneQuery = hanQuery ? '' : toNumberedPinyin(trimmed)
   const results: RankedEntry[] = []
 
   for (const entry of entries) {
     if (hskLevels.length > 0 && !hskLevels.includes(entry.hsk)) continue
-    const score = scoreEntry(entry, trimmed, hanQuery)
+    const score = scoreEntry(entry, trimmed, hanQuery, toneQuery)
     if (score > 0) results.push({ ...entry, score })
   }
 

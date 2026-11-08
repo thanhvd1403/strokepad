@@ -9,7 +9,10 @@ screen and use it offline after the first visit.
 
 ## Features
 
-- **Search by Chinese or pinyin** — `nihao`, `nh`, `ni hao`, or `你好`.
+- **Search by Chinese or pinyin** — `nihao`, `ni3hao3`, `nǐ hǎo`, `nh`, `ni hao`,
+  `xi'an`, or `你好`.
+- **Tone-aware ranking** — `ni3` puts 你 first, `ni2` 泥, and `ni4` 腻; input
+  without tones still works.
 - **Practice your own text** — type any Chinese sentence, punctuation and
   spaces included, and practise every character in order.
 - **Pinyin sentence fallback** — as you type pinyin, matching characters and
@@ -280,7 +283,7 @@ There is no automated test suite yet. Manual checks cover:
 - A new build shows the **Update available** banner; **Reload** activates the
   new service worker without losing collections or the offline pack.
 - **Settings → Offline → Download all** reaches 4,194 cached stroke files,
-  stores `entries.json?v=2`, and survives an app update.
+  stores `entries.json?v=<DATA_VERSION>`, and survives an app update.
 - A Chinese sentence with punctuation shows the **Practice your own text** card;
   the character count ignores punctuation, and Enter starts practice.
 - A pinyin query shows matching characters and words first. If there are no
@@ -296,8 +299,9 @@ Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
 
 - The dictionary is fetched once from `entries.json?v=<DATA_VERSION>` and then
   served from cache. On a slow first visit the search screen shows a loading
-  state. The file is about 3.7 MB uncompressed; hosting it with gzip/brotli is
-  recommended. Bump `DATA_VERSION` when the dictionary changes.
+  state. The file is about 4.1 MB uncompressed (about 775 KB Brotli); hosting it
+  with gzip/brotli is recommended. Bump `DATA_VERSION` when the dictionary
+  changes.
 - The full offline pack is about 15 MB and 4,194 requests. It is optional and
   only downloads characters that are not already cached.
 - Pinyin sentence suggestions use the MIT pinyin-input-method-engine. Its DAG
@@ -305,6 +309,12 @@ Lighthouse on the production preview: **1.0 Accessibility, 1.0 Best Practices,
   demand (about 2.5 MB Brotli), and cached; individual sentences are not stored.
   The engine's top paths get a light character-frequency tie-break from the app
   dictionary so a rare phrase does not outrank a more common reading.
+- Queries accept tone numbers (`ni3hao3`), tone marks (`nǐ hǎo`), and
+  apostrophes or spaces as hard syllable boundaries (`xi'an`). Each entry
+  carries a precomputed `pinyinNumbered` field, so the client never converts the
+  dictionary at runtime; exact tone matches rank above toneless ones.
+- Sentence suggestions query every valid syllable split (capped), so ambiguous
+  joins such as `fangan` can produce both 方案 and 反感.
 - Settings shows the build date and short commit (for example
   `2026-11-07 (abcdef01)`), injected by `vite.config.ts`.
 - The app has no backend and no accounts. Collections live in IndexedDB on the

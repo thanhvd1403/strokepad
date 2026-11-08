@@ -4,7 +4,8 @@ import {
   type TDagDict,
 } from 'pinyin-input-method-engine'
 import type { Entry } from '../types'
-import { containsHan, normalizePinyinInput } from './search'
+import { containsHan } from './search'
+import { normalizePinyinInput, splitPinyin } from './pinyin-text'
 import { PINYIN_SYLLABLES } from './pinyin-syllables'
 
 // Bump when the copied dictionaries change so clients fetch the new files.
@@ -25,6 +26,7 @@ const charRankCache = new WeakMap<Entry[], Map<string, number>>()
 const RANK_WEIGHT = 0.02
 const MISSING_RANK = 20000
 const MAX_SUGGESTIONS = 20
+const MAX_SPLITS = 8
 
 function getCharRanks(entries?: Entry[]) {
   if (!entries?.length) return null
@@ -49,46 +51,54 @@ function rankPenalty(text: string, ranks: Map<string, number>) {
   return sum
 }
 
-/**
- * Split joined pinyin into syllables, preferring the split with the fewest
- * syllables (the longest valid syllables). Returns null when the input cannot
- * be covered by standard pinyin syllables.
- */
-function splitPinyin(input: string): string[] | null {
-  const normalized = normalizePinyinInput(input)
-  if (normalized.length < 2) return null
-
-  const total = normalized.length
-  const best: ({ count: number; split: string[] } | null)[] = Array(total + 1).fill(null)
-  best[0] = { count: 0, split: [] }
-
-  for (let index = 0; index < total; index++) {
-    const current = best[index]
-    if (!current) continue
-
-    for (let length = Math.min(6, total - index); length >= 1; length--) {
-      const syllable = normalized.slice(index, index + length)
-      if (!PINYIN_SYLLABLES.has(syllable)) continue
-
-      const nextIndex = index + length
-      const candidate = {
-        count: current.count + 1,
-        split: [...current.split, syllable],
-      }
-      const next = best[nextIndex]
-      if (!next || candidate.count < next.count) {
-        best[nextIndex] = candidate
-      }
-    }
-  }
-
-  return best[total]?.split ?? null
-}
-
 /** True when the input looks like pinyin rather than English or Chinese. */
 export function isPinyinQuery(input: string) {
   if (containsHan(input)) return false
   return splitPinyin(input) !== null
+}
+
+/**
+ * Every valid syllable split for a query. Spaces and apostrophes are hard
+ * boundaries; within each segment the engine's alternatives are kept.
+ */
+function splitPinyinCandidates(input: string): string[][] {
+  const segments = input
+    .toLowerCase()
+    .replace(/u:/g, 'v')
+    .split(/['’\s-]+/)
+    .filter(Boolean)
+  if (!segments.length) return []
+
+  let combinations: string[][] = [[]]
+  for (const segment of segments) {
+    const normalized = normalizePinyinInput(segment)
+    if (!normalized) return []
+
+    const options = splitAsYinJie(normalized).filter(
+      (split) =>
+        split.length > 0 &&
+        split.every((syllable) => PINYIN_SYLLABLES.has(syllable)),
+    )
+    if (!options.length) return []
+
+    const next: string[][] = []
+    for (const combination of combinations) {
+      for (const option of options) {
+        next.push([...combination, ...option])
+        if (next.length >= MAX_SPLITS) break
+      }
+      if (next.length >= MAX_SPLITS) break
+    }
+    combinations = next
+  }
+
+  const seen = new Set<string>()
+  return combinations.filter((combination) => {
+    const key = combination.join(' ')
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
 
 async function fetchDictionary(url: string): Promise<ArrayBuffer> {
@@ -172,15 +182,13 @@ export async function suggestPinyin(
   input: string,
   entries?: Entry[],
 ): Promise<string[]> {
-  const normalized = normalizePinyinInput(input)
-  if (!normalized) return []
-
-  const splits = splitAsYinJie(normalized)
-  const yinJieList = splits[0]
-  if (!yinJieList?.length) return []
+  const candidates = splitPinyinCandidates(input)
+  if (!candidates.length) return []
 
   const engine = await loadPinyinEngine()
-  const paths = engine.query({ yinJieList, maxNum: 30, log: true })
+  const paths = candidates.flatMap((yinJieList) =>
+    engine.query({ yinJieList, maxNum: 30, log: true }),
+  )
   const ranks = getCharRanks(entries)
 
   const scored = paths

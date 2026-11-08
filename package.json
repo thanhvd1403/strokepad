@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "data": "npm run data:fetch && npm run data:build",
     "data:fetch": "node scripts/fetch-data.mjs",
-    "data:build": "node scripts/build-data.mjs",
+    "data:build": "tsx scripts/build-data.mjs",
     "icons": "node scripts/make-icons.mjs"
   },
   "dependencies": {

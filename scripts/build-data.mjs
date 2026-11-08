@@ -4,6 +4,9 @@ import crypto from 'node:crypto'
 import zlib from 'node:zlib'
 import { parse } from 'csv-parse/sync'
 import { pinyin } from 'pinyin-pro'
+// Shared with the client so the dictionary and the query parser use the same
+// tone-mark conversion. `npm run data:build` runs this file with tsx.
+import { toNumberedPinyin } from '../src/lib/pinyin-text.ts'
 
 const ROOT = process.cwd()
 const SRC = path.join(ROOT, 'data', 'sources')
@@ -254,6 +257,7 @@ for (const row of charRows) {
     trad: pickTrad(wordForm?.trad ?? row.Traditional, ch),
     pinyin: display,
     pinyinFlat: flat,
+    pinyinNumbered: toNumberedPinyin(display, { fillNeutral: true }),
     initials: toInitials(ch),
     en: cleanDefs(enDefs),
     vi: cleanDefs(viDefs),
@@ -311,6 +315,7 @@ for (const group of wordGroups.values()) {
     trad: pickTrad(group.trad, simp),
     pinyin: py,
     pinyinFlat: flat,
+    pinyinNumbered: toNumberedPinyin(py, { fillNeutral: true }),
     initials: toInitials(simp),
     en: cleanDefs(enDefs),
     vi: cleanDefs(viDefs),
@@ -350,6 +355,7 @@ for (const [word, rank] of freqMap) {
     trad: pickTrad(en.bySimp.get(word)?.trad ?? word, word),
     pinyin: py,
     pinyinFlat: flat,
+    pinyinNumbered: toNumberedPinyin(py, { fillNeutral: true }),
     initials: toInitials(word),
     en: cleanDefs(enDefs),
     vi: cleanDefs(viDefs),
@@ -407,7 +413,7 @@ entries.sort((a, b) => {
 })
 
 const payload = {
-  version: 2,
+  version: 3,
   generatedAt: new Date().toISOString(),
   sources: {
     dictionaryEn: 'CC-CEDICT (CC BY-SA 4.0)',
