@@ -62,7 +62,7 @@ Open the gear icon on the practice screen to adjust:
 | Script | Switch between simplified and traditional characters. |
 | Grid | Rice grid (米字格), field grid (田字格), or no grid. |
 | Blend into outline | Correct strokes fill the shadow instead of showing your ink. |
-| Stroke numbers | Show the start point and number of each stroke. |
+| Stroke numbers | Show a number on each ghost stroke still to be drawn. |
 | Hints | Show the next stroke as a dashed guide after misses. |
 | Leniency | Make stroke grading stricter or more forgiving. |
 | Hint after misses | Choose when the next-stroke hint appears. |
@@ -257,6 +257,9 @@ There is no automated test suite yet. Manual checks cover:
 - HSK filter changes the result set.
 - Ghost stroke: Full shows the whole character, Next shows only the next stroke,
   and Off shows no guide.
+- Stroke numbers follow the ghost: all remaining strokes in Full, only the next
+  stroke in Next, and none in Off; each number disappears when its stroke is
+  accepted.
 - With a ghost guide, all strokes are accepted and wrong strokes are rejected;
   with the ghost off, an off-centre stroke is accepted.
 - Blend-into-outline mode leaves no ink on the canvas and reveals the shadow.

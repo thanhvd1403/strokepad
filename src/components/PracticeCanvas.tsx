@@ -86,19 +86,23 @@ function Outline({
 
 function StrokeNumbers({
   medians,
+  indices,
   size,
   padding,
 }: {
   medians: Point[][]
+  indices: number[]
   size: number
   padding: number
 }) {
-  if (size <= 0) return null
+  if (size <= 0 || !indices.length) return null
   const radius = Math.max(7, size * 0.025)
   const fontSize = Math.max(8, size * 0.028)
   return (
     <g>
-      {medians.map((median, index) => {
+      {indices.map((index) => {
+        const median = medians[index]
+        if (!median) return null
         const point = characterToCanvas(median[0], size, padding)
         return (
           <g key={index}>
@@ -257,6 +261,18 @@ export function PracticeCanvas({
     () => mediansToDisplay(data, transform),
     [data, transform],
   )
+  // Numbers follow the visible ghost: every remaining stroke in full mode,
+  // only the next stroke in next-stroke mode, and none without a ghost.
+  const numberIndices = useMemo(() => {
+    if (!showNumbers || ghost === 'off') return []
+    if (ghost === 'next') {
+      return acceptedStrokes.length < displayMedians.length ? [acceptedStrokes.length] : []
+    }
+    return Array.from(
+      { length: Math.max(0, displayMedians.length - acceptedStrokes.length) },
+      (_, index) => index + acceptedStrokes.length,
+    )
+  }, [acceptedStrokes.length, displayMedians, ghost, showNumbers])
 
   useEffect(() => {
     if (!successFlashKey) return
@@ -430,8 +446,13 @@ export function PracticeCanvas({
         {hintVisible ? (
           <Hint medians={displayMedians} index={hintIndex} size={size} padding={padding} />
         ) : null}
-        {showNumbers ? (
-          <StrokeNumbers medians={displayMedians} size={size} padding={padding} />
+        {numberIndices.length ? (
+          <StrokeNumbers
+            medians={displayMedians}
+            indices={numberIndices}
+            size={size}
+            padding={padding}
+          />
         ) : null}
       </svg>
       <canvas
