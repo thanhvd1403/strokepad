@@ -1,12 +1,20 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import i18n from '../i18n'
-import type { GhostMode, GridStyle, Language, Script, Theme } from '../types'
+import type {
+  GhostMode,
+  GridStyle,
+  InputMode,
+  Language,
+  Script,
+  Theme,
+} from '../types'
 
 interface SettingsState {
   language: Language
   script: Script
   theme: Theme
+  inputMode: InputMode
   ghost: GhostMode
   grid: GridStyle
   blendOutline: boolean
@@ -19,6 +27,7 @@ interface SettingsState {
   setLanguage: (language: Language) => void
   setScript: (script: Script) => void
   setTheme: (theme: Theme) => void
+  setInputMode: (inputMode: InputMode) => void
   setGhost: (ghost: GhostMode) => void
   setGrid: (grid: GridStyle) => void
   setBlendOutline: (value: boolean) => void
@@ -41,6 +50,7 @@ export const useSettings = create<SettingsState>()(
       language: browserLanguage,
       script: 'simplified',
       theme: 'system',
+      inputMode: 'word',
       ghost: 'full',
       grid: 'rice',
       blendOutline: false,
@@ -57,6 +67,7 @@ export const useSettings = create<SettingsState>()(
       },
       setScript: (script) => set({ script }),
       setTheme: (theme) => set({ theme }),
+      setInputMode: (inputMode) => set({ inputMode }),
       setGhost: (ghost) => set({ ghost }),
       setGrid: (grid) => set({ grid }),
       setBlendOutline: (blendOutline) => set({ blendOutline }),

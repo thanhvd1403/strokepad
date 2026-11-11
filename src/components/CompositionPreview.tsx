@@ -22,7 +22,7 @@ export function CompositionPreview({
       <div className="mb-2 flex items-center justify-between gap-2">
         <Badge tone="lavender">
           <PenLine className="h-3 w-3" />
-          {t('search.practiceYourText')}
+          {t('search.finalize')}
         </Badge>
         <div className="flex items-center">
           <FavoriteButton
@@ -48,11 +48,8 @@ export function CompositionPreview({
       </p>
       <Button className="mt-3 w-full" variant="soft" onClick={onPractice}>
         <PenLine className="h-4 w-4" />
-        {t('search.practiceText')}
+        {t('search.sentence')}
       </Button>
-      <p className="mt-2 text-center text-xs leading-relaxed text-muted">
-        {t('search.previewEnter')}
-      </p>
     </Card>
   )
 }

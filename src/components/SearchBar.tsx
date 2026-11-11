@@ -1,13 +1,16 @@
-import { Search, X } from 'lucide-react'
+import { ArrowLeftRight, PenLine, Search, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { clsx } from 'clsx'
 import type { RefObject } from 'react'
+import type { InputMode } from '../types'
 
 export function SearchBar({
   value,
+  mode = 'word',
   composed = '',
   onChange,
   onSubmit,
+  onSwitchMode,
   onSpace,
   onNavigate,
   onEscape,
@@ -19,9 +22,11 @@ export function SearchBar({
   inputRef,
 }: {
   value: string
+  mode?: InputMode
   composed?: string
   onChange: (value: string) => void
   onSubmit?: () => void
+  onSwitchMode?: () => void
   onSpace?: () => void
   onNavigate?: (delta: number) => void
   onEscape?: () => void
@@ -33,6 +38,12 @@ export function SearchBar({
   inputRef?: RefObject<HTMLInputElement | null>
 }) {
   const { t } = useTranslation()
+  const sentenceMode = mode === 'sentence'
+  const Icon = sentenceMode ? PenLine : Search
+  const hasText = Boolean(value || composed)
+  const switchLabel = sentenceMode
+    ? t('search.switchToWord')
+    : t('search.switchToSentence')
 
   const clear = () => {
     if (value) {
@@ -51,7 +62,7 @@ export function SearchBar({
       }}
     >
       <div className="flex min-h-14 w-full flex-wrap items-center gap-x-2 gap-y-1 rounded-3xl border border-line bg-surface px-4 py-2.5 text-base shadow-[var(--shadow)] transition focus-within:border-accent/60 focus-within:ring-4 focus-within:ring-accent/10">
-        <Search className="h-5 w-5 shrink-0 text-muted" />
+        <Icon className="h-5 w-5 shrink-0 text-muted" />
         {composed ? (
           <span className="hanzi min-w-0 break-all text-base font-medium leading-relaxed text-ink">
             {composed}
@@ -97,30 +108,52 @@ export function SearchBar({
             }
           }}
           placeholder={
-            composed ? t('search.composePlaceholder') : t('search.placeholder')
+            composed
+              ? t('search.composePlaceholder')
+              : sentenceMode
+                ? t('search.sentencePlaceholder')
+                : t('search.wordPlaceholder')
           }
           autoFocus={autoFocus}
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
-          enterKeyHint="search"
-          inputMode="search"
-          aria-label={t('search.searchBy')}
+          enterKeyHint={sentenceMode ? 'done' : 'search'}
+          inputMode={sentenceMode ? 'text' : 'search'}
+          aria-label={
+            sentenceMode ? t('search.sentenceInputLabel') : t('search.searchBy')
+          }
           className={clsx(
             'min-w-[4.5rem] flex-1 bg-transparent text-base font-medium text-ink outline-none placeholder:text-muted/70',
             value && 'underline decoration-accent/40 decoration-dotted underline-offset-4',
           )}
         />
-        {value || composed ? (
-          <button
-            type="button"
-            aria-label={t('common.clear')}
-            onClick={clear}
-            className="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-surface-2 hover:text-ink"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        ) : null}
+        <div className="ml-auto flex shrink-0 items-center gap-0.5">
+          {hasText ? (
+            <button
+              type="button"
+              aria-label={t('common.clear')}
+              onClick={clear}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-surface-2 hover:text-ink"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          ) : null}
+          {onSwitchMode ? (
+            <>
+              <span className="mx-0.5 h-5 w-px bg-line" aria-hidden="true" />
+              <button
+                type="button"
+                aria-label={switchLabel}
+                title={switchLabel}
+                onClick={onSwitchMode}
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-surface-2 hover:text-ink"
+              >
+                <ArrowLeftRight className="h-4 w-4" />
+              </button>
+            </>
+          ) : null}
+        </div>
       </div>
     </form>
   )

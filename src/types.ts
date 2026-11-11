@@ -48,6 +48,7 @@ export type GridStyle = 'rice' | 'field' | 'none'
 export type Script = 'simplified' | 'traditional'
 export type Language = 'en' | 'vi'
 export type Theme = 'light' | 'dark' | 'system'
+export type InputMode = 'word' | 'sentence'
 
 export interface StrokeData {
   strokes: string[]

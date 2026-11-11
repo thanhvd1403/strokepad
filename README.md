@@ -13,12 +13,16 @@ screen and use it offline after the first visit.
   `xi'an`, or `你好`.
 - **Tone-aware ranking** — `ni3` puts 你 first, `ni2` 泥, and `ni4` 腻; input
   without tones still works.
-- **IME-style composition** — type a pinyin chunk, then press Space or tap a
-  candidate to commit it. The active pinyin stays inline with the committed
-  Chinese. Candidates are calculated per chunk, arrow keys move the highlight,
-  Backspace edits the pinyin first and then the committed text, and chosen
-  candidates are remembered per chunk. Enter previews the sentence before
-  practice.
+- **Two input modes** — a switch on the right of the search bar toggles between
+  word search and sentence composition. The left icon changes from a magnifier
+  to a pencil, switching clears the current input, and the chosen mode is
+  remembered.
+- **IME-style composition** — in sentence mode, type a pinyin chunk, then press
+  Space or tap a candidate to commit it. The active pinyin stays inline with
+  the committed Chinese. Candidates are calculated per chunk, arrow keys move
+  the highlight, Backspace edits the pinyin first and then the committed text,
+  and chosen candidates are remembered per chunk. A persistent finalize card
+  practises the sentence when you are done.
 - **Practice your own text** — type any Chinese sentence, punctuation and
   spaces included, and practise every character in order.
 - **Pinyin sentence fallback** — as you type a chunk, matching characters and
@@ -293,20 +297,22 @@ There is no automated test suite yet. Manual checks cover:
   stores `entries.json?v=<DATA_VERSION>`, and survives an app update.
 - A Chinese sentence with punctuation shows the **Practice your own text** card;
   the character count ignores punctuation, and Enter starts practice.
-- A pinyin chunk shows dictionary candidates first; when there are fewer than
-  nine, sentence suggestions fill in the remaining candidates. Enter commits
-  the active chunk and shows the composed-text preview.
-- A pinyin chunk with a dictionary match (for example `nihao` → 你好) shows
-  dictionary candidates first; sentence suggestions fill in when the candidate
-  list is short.
+- Word mode restores the original search flow: typing `nihao` shows 你好 and
+  tapping it starts practice; Enter practises the top dictionary match.
+- Switching to sentence mode clears the current input and changes the left icon
+  to a pencil; switching back to word mode clears it again.
+- A pinyin chunk in sentence mode shows dictionary candidates first; when there
+  are fewer than nine, sentence suggestions fill in the remaining candidates.
+  Enter commits the active chunk, and the finalize card stays visible below the
+  candidates.
 - IME composition: type `wo`, press Space, and 我 is appended inline; type
   `mingtian`, press Space, and 明天 follows it.
 - Candidates are per chunk; arrow keys move the highlight and Space or a tap
   commits the selected one.
 - Backspace edits the active pinyin first; when it is empty, it deletes the last
   committed character.
-- Enter commits the active chunk and shows the composed-text preview; a second
-  Enter starts practice.
+- With no active chunk, Enter practises the composed sentence; the finalize card
+  button also commits any active chunk and starts practice.
 - Chosen candidates are remembered per chunk; typing `liangdian` again ranks the
   previous choice first.
 - Typing Chinese or punctuation appends it to the composed text; ASCII

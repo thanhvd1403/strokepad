@@ -1,5 +1,13 @@
-import { BookOpen, Dices, History, Library, PenLine, Sparkles } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  BookOpen,
+  Dices,
+  History,
+  Library,
+  Loader2,
+  PenLine,
+  Sparkles,
+} from 'lucide-react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
@@ -9,6 +17,7 @@ import {
 import { CompositionPreview } from '../components/CompositionPreview'
 import { HskFilter } from '../components/HskFilter'
 import { SearchBar } from '../components/SearchBar'
+import { SearchResults } from '../components/SearchResults'
 import { Badge, Button, Card, EmptyState } from '../components/ui'
 import {
   readCandidateMemory,
@@ -16,6 +25,7 @@ import {
 } from '../lib/candidate-memory'
 import { loadEntries } from '../lib/data'
 import { useRecentSearches } from '../lib/hooks'
+import { isPinyinQuery, suggestPinyin } from '../lib/pinyin-suggest'
 import {
   containsHan,
   normalizePinyinInput,
@@ -152,13 +162,16 @@ export function Home() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const script = useSettings((state) => state.script)
+  const inputMode = useSettings((state) => state.inputMode)
+  const setInputMode = useSettings((state) => state.setInputMode)
   const [searchParams, setSearchParams] = useSearchParams()
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '')
   const [composedText, setComposedText] = useState('')
-  const [previewOpen, setPreviewOpen] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [memory, setMemory] = useState(readCandidateMemory)
+  const [submitting, setSubmitting] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const submitToken = useRef(0)
   const [hskLevels, setHskLevels] = useState<number[]>(() =>
     (searchParams.get('hsk') ?? '')
       .split(',')
@@ -168,6 +181,7 @@ export function Home() {
   const [data, setData] = useState<EntryData | null>(null)
   const [error, setError] = useState(false)
   const { recent, add, clear } = useRecentSearches()
+  const deferredQuery = useDeferredValue(query)
 
   useEffect(() => {
     let cancelled = false
@@ -192,15 +206,23 @@ export function Home() {
 
   const trimmedQuery = query.trim()
 
-  const results = useMemo(() => {
-    if (!data || !trimmedQuery) return []
+  const wordResults = useMemo(() => {
+    if (inputMode !== 'word' || !data || !deferredQuery.trim()) return []
+    return searchEntries(data.entries, deferredQuery, hskLevels)
+  }, [inputMode, data, deferredQuery, hskLevels])
+
+  const sentenceResults = useMemo(() => {
+    if (inputMode !== 'sentence' || !data || !trimmedQuery) return []
     return searchEntries(data.entries, trimmedQuery, hskLevels)
-  }, [data, trimmedQuery, hskLevels])
+  }, [inputMode, data, trimmedQuery, hskLevels])
 
   const { status, suggestions, retry } = usePinyinSuggestions(
     trimmedQuery,
     data?.entries ?? [],
-    Boolean(data) && Boolean(trimmedQuery) && results.length < 9,
+    inputMode === 'sentence' &&
+      Boolean(data) &&
+      Boolean(trimmedQuery) &&
+      sentenceResults.length < 9,
   )
 
   const starters = useMemo(
@@ -211,7 +233,7 @@ export function Home() {
   const candidates = useMemo<ComposerCandidate[]>(() => {
     if (!data || !trimmedQuery) return []
 
-    const entryCandidates: ComposerCandidate[] = results
+    const entryCandidates: ComposerCandidate[] = sentenceResults
       .slice(0, 9)
       .map((entry) => ({
         text: entryText(entry, script),
@@ -234,7 +256,7 @@ export function Home() {
       }
     }
     return list
-  }, [data, trimmedQuery, results, script, suggestions, memory])
+  }, [data, trimmedQuery, sentenceResults, script, suggestions, memory])
 
   const activeIndex = Math.min(selectedIndex, Math.max(candidates.length - 1, 0))
 
@@ -274,20 +296,16 @@ export function Home() {
     setComposedText((current) => current + text + suffix)
     setQuery('')
     setSelectedIndex(0)
-    setPreviewOpen(false)
     focusInput()
   }
 
   const appendComposed = (text: string) => {
     if (!text) return
     setComposedText((current) => current + text)
-    setPreviewOpen(false)
     focusInput()
   }
 
-  const handleQueryChange = (next: string) => {
-    setPreviewOpen(false)
-
+  const handleSentenceChange = (next: string) => {
     if (containsHan(next)) {
       const cleaned = next.replace(/[a-zA-Z0-9\s]/g, '')
       if (cleaned) appendComposed(convertPunctuation(cleaned))
@@ -320,8 +338,18 @@ export function Home() {
     setSelectedIndex(0)
   }
 
+  const handleQueryChange = (next: string) => {
+    if (inputMode === 'word') {
+      submitToken.current += 1
+      setSubmitting(false)
+      setQuery(next)
+      return
+    }
+    handleSentenceChange(next)
+  }
+
   const handleSpace = () => {
-    if (previewOpen) return
+    if (inputMode !== 'sentence') return
     const candidate = candidates[activeIndex]
     if (candidate) commit(candidate.text)
   }
@@ -337,49 +365,109 @@ export function Home() {
     if (query) {
       setQuery('')
       setSelectedIndex(0)
-      setPreviewOpen(false)
       focusInput()
-      return
     }
-    if (previewOpen) setPreviewOpen(false)
   }
 
   const handleDeleteComposed = () => {
     if (query) return
     setComposedText((current) => Array.from(current).slice(0, -1).join(''))
-    setPreviewOpen(false)
     focusInput()
   }
 
   const handleClear = () => {
-    if (query) {
+    if (inputMode === 'word') {
+      submitToken.current += 1
+      setSubmitting(false)
+      setQuery('')
+    } else if (query) {
       setQuery('')
       setSelectedIndex(0)
-      setPreviewOpen(false)
     } else {
       setComposedText('')
-      setPreviewOpen(false)
     }
     focusInput()
   }
 
+  const resetInput = () => {
+    submitToken.current += 1
+    setQuery('')
+    setComposedText('')
+    setSelectedIndex(0)
+    setSubmitting(false)
+    focusInput()
+  }
+
+  const switchMode = () => {
+    setInputMode(inputMode === 'word' ? 'sentence' : 'word')
+    resetInput()
+  }
+
+  const finalizeSentence = () => {
+    const candidate = trimmedQuery ? candidates[activeIndex] : undefined
+    const text = (composedText + (candidate?.text ?? '')).trim()
+    if (!text) return
+    if (candidate) remember(candidate.text)
+    practiceSentence(text)
+  }
+
+  const handleWordSubmit = () => {
+    const trimmed = query.trim()
+    if (!trimmed || submitting) return
+
+    if (containsHan(trimmed)) {
+      practiceSentence(toScript(trimmed, script, data?.entries ?? []))
+      return
+    }
+
+    if (!isPinyinQuery(trimmed)) {
+      add(trimmed)
+      return
+    }
+
+    // Characters and words take priority. Only fall back to a generated
+    // sentence when the dictionary has no match.
+    const currentResults = data
+      ? searchEntries(data.entries, trimmed, hskLevels)
+      : []
+    if (currentResults.length > 0) {
+      practiceEntry(currentResults[0])
+      return
+    }
+
+    add(trimmed)
+    setSubmitting(true)
+    const token = ++submitToken.current
+    void suggestPinyin(trimmed, data?.entries)
+      .then((list) => {
+        if (token !== submitToken.current) return
+        const best = list[0]
+        if (best) {
+          practiceText(toScript(best, script, data?.entries ?? []))
+        }
+      })
+      .catch(() => {
+        // Keep the dictionary results visible; the suggestion card shows the
+        // error and a retry action.
+      })
+      .finally(() => {
+        if (token === submitToken.current) setSubmitting(false)
+      })
+  }
+
   const handleSubmit = () => {
-    if (previewOpen) {
-      if (composedText.trim()) practiceComposed()
+    if (inputMode === 'word') {
+      handleWordSubmit()
       return
     }
 
     if (trimmedQuery) {
       const candidate = candidates[activeIndex]
-      if (candidate) {
-        const next = composedText + candidate.text
-        commit(candidate.text)
-        if (next.trim()) setPreviewOpen(true)
-        return
-      }
+      if (candidate) commit(candidate.text)
+      return
     }
 
-    if (composedText.trim()) setPreviewOpen(true)
+    if (composedText.trim()) practiceComposed()
   }
 
   return (
@@ -389,21 +477,37 @@ export function Home() {
           <h1 className="text-[1.65rem] font-bold leading-tight tracking-tight text-ink">
             {t('search.startTitle')}
           </h1>
-          <p className="mt-1 text-sm leading-relaxed text-muted">{t('search.startHint')}</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted">
+            {t(
+              inputMode === 'sentence'
+                ? 'search.sentenceStartHint'
+                : 'search.startHint',
+            )}
+          </p>
         </div>
         <SearchBar
           value={query}
-          composed={composedText}
+          mode={inputMode}
+          composed={inputMode === 'sentence' ? composedText : ''}
           onChange={handleQueryChange}
           onSubmit={handleSubmit}
-          onSpace={handleSpace}
-          onNavigate={moveSelection}
-          onEscape={handleEscape}
-          onDeleteComposed={handleDeleteComposed}
+          onSwitchMode={switchMode}
+          onSpace={inputMode === 'sentence' ? handleSpace : undefined}
+          onNavigate={inputMode === 'sentence' ? moveSelection : undefined}
+          onEscape={inputMode === 'sentence' ? handleEscape : undefined}
+          onDeleteComposed={
+            inputMode === 'sentence' ? handleDeleteComposed : undefined
+          }
           onClear={handleClear}
-          canNavigate={!previewOpen && candidates.length > 1}
+          canNavigate={inputMode === 'sentence' && candidates.length > 1}
           inputRef={inputRef}
         />
+        {inputMode === 'word' && submitting ? (
+          <p className="flex items-center gap-1.5 text-xs text-muted">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            {t('search.pinyinFinding')}
+          </p>
+        ) : null}
         <HskFilter selected={hskLevels} onChange={setHskLevels} />
       </section>
 
@@ -425,44 +529,61 @@ export function Home() {
           <p className="mt-4 text-xs text-muted">{t('search.loading')}</p>
           <p className="mt-1 text-xs leading-relaxed text-muted">{t('search.loadingHint')}</p>
         </Card>
-      ) : previewOpen && composedText.trim() ? (
-        <CompositionPreview text={composedText} onPractice={practiceComposed} />
-      ) : trimmedQuery ? (
-        <ComposerCandidates
-          candidates={candidates}
-          status={status}
-          selectedIndex={activeIndex}
-          onSelect={(text) => commit(text)}
-          onRetry={retry}
-        />
-      ) : composedText.trim() ? (
-        <p className="text-xs leading-relaxed text-muted">{t('search.composeHint')}</p>
+      ) : inputMode === 'word' ? (
+        trimmedQuery ? (
+          <SearchResults
+            results={wordResults}
+            query={query}
+            script={script}
+            entries={data.entries}
+            onPractice={practiceEntry}
+            onPracticeSentence={practiceSentence}
+          />
+        ) : (
+          <div className="space-y-6">
+            <RecentSearches recent={recent} onPick={handleQueryChange} onClear={clear} />
+
+            <section className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
+                  {t('search.starter')}
+                </h2>
+                <Badge tone="sage">HSK 1</Badge>
+              </div>
+              <StarterGrid entries={starters} script={script} onPick={practiceEntry} />
+              <Button
+                variant="soft"
+                className="w-full"
+                onClick={() => {
+                  const entry = randomStarter(data.entries)
+                  if (entry) practiceEntry(entry)
+                }}
+              >
+                <Dices className="h-4 w-4" />
+                {t('search.random')}
+              </Button>
+            </section>
+
+            <HowItWorks />
+          </div>
+        )
       ) : (
-        <div className="space-y-6">
-          <RecentSearches recent={recent} onPick={handleQueryChange} onClear={clear} />
-
-          <section className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
-                {t('search.starter')}
-              </h2>
-              <Badge tone="sage">HSK 1</Badge>
-            </div>
-            <StarterGrid entries={starters} script={script} onPick={practiceEntry} />
-            <Button
-              variant="soft"
-              className="w-full"
-              onClick={() => {
-                const entry = randomStarter(data.entries)
-                if (entry) practiceEntry(entry)
-              }}
-            >
-              <Dices className="h-4 w-4" />
-              {t('search.random')}
-            </Button>
-          </section>
-
-          <HowItWorks />
+        <div className="space-y-3">
+          {trimmedQuery ? (
+            <ComposerCandidates
+              candidates={candidates}
+              status={status}
+              selectedIndex={activeIndex}
+              onSelect={(text) => commit(text)}
+              onRetry={retry}
+            />
+          ) : null}
+          {composedText.trim() ? (
+            <CompositionPreview
+              text={composedText}
+              onPractice={finalizeSentence}
+            />
+          ) : null}
         </div>
       )}
     </div>
