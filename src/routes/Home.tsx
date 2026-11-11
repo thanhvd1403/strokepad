@@ -47,6 +47,9 @@ const ASCII_PUNCTUATION: Record<string, string> = {
   ';': '；',
 }
 
+// Keep this identity stable: the suggestion hook depends on the entries array.
+const NO_ENTRIES: Entry[] = []
+
 function convertPunctuation(value: string) {
   return value.replace(/[,.?!;]/g, (char) => ASCII_PUNCTUATION[char] ?? char)
 }
@@ -218,7 +221,7 @@ export function Home() {
 
   const { status, suggestions, retry } = usePinyinSuggestions(
     trimmedQuery,
-    data?.entries ?? [],
+    data?.entries ?? NO_ENTRIES,
     inputMode === 'sentence' &&
       Boolean(data) &&
       Boolean(trimmedQuery) &&

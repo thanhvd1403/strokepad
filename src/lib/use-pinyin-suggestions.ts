@@ -22,17 +22,17 @@ export function usePinyinSuggestions(
   useEffect(() => {
     if (!active) {
       // oxlint-disable-next-line react/set-state-in-effect -- resetting an async result
-      setStatus('idle')
+      setStatus((current) => (current === 'idle' ? current : 'idle'))
       // oxlint-disable-next-line react/set-state-in-effect -- resetting an async result
-      setSuggestions([])
+      setSuggestions((current) => (current.length === 0 ? current : []))
       return
     }
 
     let cancelled = false
     // oxlint-disable-next-line react/set-state-in-effect -- resetting an async result
-    setStatus('loading')
+    setStatus((current) => (current === 'loading' ? current : 'loading'))
     // oxlint-disable-next-line react/set-state-in-effect -- resetting an async result
-    setSuggestions([])
+    setSuggestions((current) => (current.length === 0 ? current : []))
 
     const timer = window.setTimeout(() => {
       void suggestPinyin(query, entries)
@@ -43,7 +43,7 @@ export function usePinyinSuggestions(
         })
         .catch(() => {
           if (cancelled) return
-          setSuggestions([])
+          setSuggestions((current) => (current.length === 0 ? current : []))
           setStatus('error')
         })
     }, 80)
